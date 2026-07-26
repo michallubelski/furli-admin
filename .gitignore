@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.local
+!.env.template
+.aws/
+*.pem
+*.key
+*.iml
+*.tsbuildinfo
+docker/.htpasswd
+
+# Wygenerowany przez ./build.sh - samowystarczalny katalog do recznego wdrozenia, nie commitowac
+deployment/

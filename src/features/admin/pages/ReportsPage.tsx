@@ -1,0 +1,69 @@
+import { useState } from 'react';
+import { MessageSquareWarning } from '../../../shared/icons';
+import { Card } from '../../../shared/components/ui';
+import { C } from '../../../shared/constants/theme';
+import { useAdminState } from '../context';
+import { AdminBadge, EmptyState, TabButton } from '../components/shared';
+import { adminActionButtonStyle } from '../model';
+import type { AdminReportRecord } from '../model';
+
+const TABS: Array<{ id: 'open' | 'all' | 'resolved'; label: string }> = [
+  { id: 'open', label: 'Otwarte' },
+  { id: 'all', label: 'Wszystkie' },
+  { id: 'resolved', label: 'Zamknięte' },
+];
+
+function statusMeta(status: AdminReportRecord['status']) {
+  if (status === 'resolved') {
+    return { label: 'Zamknięte', color: C.green, background: C.greenLight };
+  }
+  if (status === 'investigating') {
+    return { label: 'W toku', color: C.tealDark, background: C.tealLight };
+  }
+  return { label: 'Otwarte', color: C.amber, background: 'oklch(0.95 0.06 75)' };
+}
+
+export function AdminReportsPage() {
+  const { reports, resolveReport } = useAdminState();
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('open');
+  const shown = reports.filter((report) => tab === 'all' || report.status === tab);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
+        {TABS.map((item) => <TabButton key={item.id} active={tab === item.id} label={item.label} onClick={() => setTab(item.id)} />)}
+      </div>
+      {!shown.length ? <EmptyState title="Brak zgłoszeń" description="Brak zgłoszeń w tej kategorii." /> : null}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {shown.map((report) => {
+          const meta = statusMeta(report.status);
+          const isOpen = report.status !== 'resolved';
+          return (
+            <Card key={report.id} style={{ padding: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 11, background: isOpen ? 'oklch(0.95 0.06 75)' : C.greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <MessageSquareWarning size={18} color={isOpen ? C.amber : C.green} />
+                </div>
+                <div style={{ flex: 1, minWidth: 180 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 700 }}>{report.type}</span>
+                    <AdminBadge label={meta.label} color={meta.color} background={meta.background} />
+                  </div>
+                  <div style={{ fontSize: 12, color: C.textMuted, margin: '3px 0' }}>
+                    Dotyczy: <b style={{ color: C.textSecondary }}>{report.providerName}</b> · Priorytet: {report.priority} · {report.openedAt}
+                  </div>
+                  <p style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>{report.subject}</p>
+                </div>
+                {isOpen ? (
+                  <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+                    <button onClick={() => resolveReport(report.id)} style={adminActionButtonStyle.success}>Oznacz jako rozpatrzone</button>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

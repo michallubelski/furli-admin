@@ -1,0 +1,19 @@
+services:
+  admin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: furli-admin
+    volumes:
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+    # No host port published on purpose - reachable only via furli-net + container name from
+    # furli-nginx-proxy, same pattern as furli-frontend/furli-customer-portal.
+    networks:
+      - furli-net
+    restart: unless-stopped
+
+networks:
+  # Shared with furli-infra's nginx-proxy/docker-compose.yml - external, created once on the host
+  # with `docker network create furli-net`.
+  furli-net:
+    external: true
