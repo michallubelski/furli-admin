@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Ban, Check, CreditCard, FileText, LogIn, Mail, MapPin, Phone, Play, RefreshCw, ShieldCheck, Store, X } from '../../../shared/icons';
 import { ApiClientError } from '../../../shared/api/client';
-import { SectionTitle, inputStyle } from '../../../shared/components/ui';
+import { ConfirmDangerModal, SectionTitle, inputStyle } from '../../../shared/components/ui';
 import { C, FONT_HEAD } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import type { ProviderAccount } from '../../../shared/types/furli';
@@ -82,6 +82,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
   const [mode, setMode] = useState<'reject' | 'request_changes' | null>(null);
   const [note, setNote] = useState('');
   const [pendingAction, setPendingAction] = useState<ModalAction | null>(null);
+  const [confirmingSuspend, setConfirmingSuspend] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -100,6 +101,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
     setSuccessMessage('');
     setMode(null);
     setNote('');
+    setConfirmingSuspend(false);
     void (async () => {
       try {
         const response = await getAdminProvider(accessToken, providerId);
@@ -369,7 +371,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                 {displayProvider.verificationStatus === 'approved' ? (
                   <button
                     disabled={pendingAction === (displayProvider.suspended ? 'reactivate' : 'suspend')}
-                    onClick={() => void handleAction(displayProvider.suspended ? 'reactivate' : 'suspend')}
+                    onClick={() => setConfirmingSuspend(true)}
                     style={{ ...(displayProvider.suspended ? adminActionButtonStyle.success : adminActionButtonStyle.danger), display: 'inline-flex', alignItems: 'center', gap: 7, opacity: pendingAction === (displayProvider.suspended ? 'reactivate' : 'suspend') ? 0.65 : 1 }}
                   >
                     {displayProvider.suspended ? <><Play size={15} /> {t('admin.providerModal.reactivateProvider')}</> : <><Ban size={15} /> {t('admin.providerModal.suspendProvider')}</>}
@@ -380,6 +382,18 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
           ) : null}
         </div>
       </div>
+      {displayProvider ? (
+        <ConfirmDangerModal
+          open={confirmingSuspend}
+          danger={!displayProvider.suspended}
+          title={t(displayProvider.suspended ? 'admin.providers.confirmSuspend.reactivateTitle' : 'admin.providers.confirmSuspend.suspendTitle')}
+          body={t(displayProvider.suspended ? 'admin.providers.confirmSuspend.reactivateBody' : 'admin.providers.confirmSuspend.suspendBody', { name: displayProvider.name })}
+          confirmWord={displayProvider.name}
+          actionLabel={t(displayProvider.suspended ? 'admin.providers.confirmSuspend.reactivateAction' : 'admin.providers.confirmSuspend.suspendAction')}
+          onConfirm={() => void handleAction(displayProvider.suspended ? 'reactivate' : 'suspend')}
+          onClose={() => setConfirmingSuspend(false)}
+        />
+      ) : null}
     </div>
   );
 }

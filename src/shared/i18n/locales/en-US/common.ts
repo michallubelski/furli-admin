@@ -58,4 +58,7 @@ export const common: TranslationNode = {
   formatting: {
     activeRole: 'Active role',
   },
+  confirmDangerModal: {
+    typeToConfirmLabel: 'To confirm, type:',
+  },
 };

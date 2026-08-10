@@ -23,7 +23,7 @@ export function AdminDashboardPage() {
         <KpiCard icon={<CreditCard size={20} />} label={t('admin.dashboard.kpi.mrr')} value={monthlyRevenue} />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 18 }}>
-        <ScreenCard title={t('admin.dashboard.toReview.title')} right={<SectionLinkButton to="/verification" label={t('admin.dashboard.toReview.allQueue')} />}>
+        <ScreenCard title={t('admin.dashboard.toReview.title')} right={<SectionLinkButton to="/queue" label={t('admin.dashboard.toReview.allQueue')} />}>
           {!pendingProviders.length ? <p style={{ fontSize: 13, color: C.textMuted }}>{t('admin.dashboard.toReview.empty')}</p> : null}
           {pendingProviders.slice(0, 4).map((provider, index) => (
             <div key={provider.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: index < Math.min(pendingProviders.length, 4) - 1 ? `1px solid ${C.border}` : 'none' }}>

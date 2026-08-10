@@ -1,39 +1,43 @@
 import { useState } from 'react';
 import { MessageSquareWarning } from '../../../shared/icons';
-import { Card } from '../../../shared/components/ui';
+import { Card, DevNote } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
+import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
 import { AdminBadge, EmptyState, TabButton } from '../components/shared';
 import { adminActionButtonStyle } from '../model';
 import type { AdminReportRecord } from '../model';
 
-const TABS: Array<{ id: 'open' | 'all' | 'resolved'; label: string }> = [
-  { id: 'open', label: 'Otwarte' },
-  { id: 'all', label: 'Wszystkie' },
-  { id: 'resolved', label: 'Zamknięte' },
-];
-
-function statusMeta(status: AdminReportRecord['status']) {
-  if (status === 'resolved') {
-    return { label: 'Zamknięte', color: C.green, background: C.greenLight };
-  }
-  if (status === 'investigating') {
-    return { label: 'W toku', color: C.tealDark, background: C.tealLight };
-  }
-  return { label: 'Otwarte', color: C.amber, background: 'oklch(0.95 0.06 75)' };
-}
+type ReportTab = 'open' | 'all' | 'resolved';
 
 export function AdminReportsPage() {
+  const { t } = useI18n();
   const { reports, resolveReport } = useAdminState();
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('open');
+  const [tab, setTab] = useState<ReportTab>('open');
   const shown = reports.filter((report) => tab === 'all' || report.status === tab);
+
+  const TABS: Array<{ id: ReportTab; label: string }> = [
+    { id: 'open', label: t('admin.reports.tabOpen') },
+    { id: 'all', label: t('admin.reports.tabAll') },
+    { id: 'resolved', label: t('admin.reports.tabResolved') },
+  ];
+
+  const statusMeta = (status: AdminReportRecord['status']) => {
+    if (status === 'resolved') {
+      return { label: t('admin.reports.statusResolved'), color: C.green, background: C.greenLight };
+    }
+    if (status === 'investigating') {
+      return { label: t('admin.reports.statusInvestigating'), color: C.tealDark, background: C.tealLight };
+    }
+    return { label: t('admin.reports.statusOpen'), color: C.amber, background: 'oklch(0.95 0.06 75)' };
+  };
 
   return (
     <div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
         {TABS.map((item) => <TabButton key={item.id} active={tab === item.id} label={item.label} onClick={() => setTab(item.id)} />)}
       </div>
-      {!shown.length ? <EmptyState title="Brak zgłoszeń" description="Brak zgłoszeń w tej kategorii." /> : null}
+      {!shown.length ? <EmptyState title={t('admin.reports.emptyTitle')} description={t('admin.reports.emptyDescription')} /> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {shown.map((report) => {
           const meta = statusMeta(report.status);
@@ -50,13 +54,13 @@ export function AdminReportsPage() {
                     <AdminBadge label={meta.label} color={meta.color} background={meta.background} />
                   </div>
                   <div style={{ fontSize: 12, color: C.textMuted, margin: '3px 0' }}>
-                    Dotyczy: <b style={{ color: C.textSecondary }}>{report.providerName}</b> · Priorytet: {report.priority} · {report.openedAt}
+                    {t('admin.reports.concernsPrefix')} <b style={{ color: C.textSecondary }}>{report.providerName}</b> · {report.reporter} · {report.openedAt} · {t('admin.reports.priorityLabel')}: {report.priority}
                   </div>
-                  <p style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>{report.subject}</p>
+                  <p style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>{report.detail}</p>
                 </div>
                 {isOpen ? (
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                    <button onClick={() => resolveReport(report.id)} style={adminActionButtonStyle.success}>Oznacz jako rozpatrzone</button>
+                    <button onClick={() => resolveReport(report.id)} style={adminActionButtonStyle.success}>{t('admin.reports.resolveAction')}</button>
                   </div>
                 ) : null}
               </div>
@@ -64,6 +68,7 @@ export function AdminReportsPage() {
           );
         })}
       </div>
+      <DevNote>{t('admin.reports.devNote')}</DevNote>
     </div>
   );
 }

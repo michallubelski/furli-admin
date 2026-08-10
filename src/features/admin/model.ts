@@ -122,6 +122,14 @@ export interface AdminReviewRecord {
   date: string;
   reason: string;
   status: AdminReviewStatus;
+  // A review can carry a second, independent rating dimension for the staff member who handled the
+  // visit (not every review has one - a facility with no team, or a review left before staff
+  // attribution existed, has none). Hiding the review removes both dimensions at once; there's no
+  // way to hide just the staff half.
+  staffName?: string;
+  staffRating?: number;
+  staffText?: string;
+  staffReply?: string;
 }
 
 export interface AdminReportRecord {
@@ -129,18 +137,25 @@ export interface AdminReportRecord {
   type: string;
   subject: string;
   providerName: string;
+  reporter: string;
+  detail: string;
   openedAt: string;
   status: AdminReportStatus;
   priority: 'Niska' | 'Średnia' | 'Wysoka';
 }
 
+export type AdminIntegrationEnv = 'production' | 'sandbox';
+
 export interface AdminIntegrationRecord {
   id: string;
   providerName: string;
   systemName: string;
+  clientId: string;
+  env: AdminIntegrationEnv;
   scope: string;
   status: AdminIntegrationStatus;
-  lastSync: string;
+  lastEvent: string;
+  webhookOk: boolean;
 }
 
 export interface AdminBroadcastRecord {

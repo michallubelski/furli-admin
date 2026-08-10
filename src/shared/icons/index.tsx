@@ -88,3 +88,5 @@ export const Receipt = wrap(Lucide.Receipt);
 export const Scale = wrap(Lucide.Scale);
 export const Cat = wrap(Lucide.Cat);
 export const Dog = wrap(Lucide.Dog);
+export const TrendingDown = wrap(Lucide.TrendingDown);
+export const CalendarCheck = wrap(Lucide.CalendarCheck);

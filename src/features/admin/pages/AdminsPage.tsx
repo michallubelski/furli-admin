@@ -1,27 +1,35 @@
-import { Activity, Check, Database, Lock, User, X } from '../../../shared/icons';
+import { Activity, Check, Database, Lock, Users, X } from '../../../shared/icons';
 import { Card, SectionTitle } from '../../../shared/components/ui';
 import { C, FONT_NUM } from '../../../shared/constants/theme';
+import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
 import { AdminBadge, AdminDevNote } from '../components/shared';
 
-const ROLE_PERMS = {
-  perms: ['Weryf.', 'Placówki', 'Finanse', 'Moderacja', 'Konfig.', 'RODO'],
-  roles: [
-    { role: 'Super Admin', has: [true, true, true, true, true, true] },
-    { role: 'Operacje', has: [true, true, false, false, false, false] },
-    { role: 'Moderacja', has: [false, false, false, true, false, false] },
-  ],
-};
-
 export function AdminAdminsPage() {
+  const { t } = useI18n();
   const { admins, audit, gdprRequests, resolveGdprRequest } = useAdminState();
-  const auditAll = [...audit, { id: 'local_audit_login', action: 'Zalogowano', target: 'Administrator', actor: '', timestamp: 'dziś, 08:55' }, { id: 'local_audit_flag', action: 'Zmieniono flagę funkcji', target: 'Rezerwacje natychmiastowe', actor: '', timestamp: 'wczoraj' }];
+
+  const ROLE_PERMS = {
+    perms: [t('admin.admins.permVerification'), t('admin.admins.permProviders'), t('admin.admins.permFinance'), t('admin.admins.permModeration'), t('admin.admins.permConfig'), t('admin.admins.permAdmins')],
+    roles: [
+      { role: 'Owner', has: [true, true, true, true, true, true] },
+      { role: 'Weryfikator', has: [true, true, false, false, false, false] },
+      { role: 'Support', has: [false, true, false, true, false, false] },
+      { role: 'Finanse', has: [false, true, true, false, false, false] },
+    ],
+  };
+
+  const auditAll = [
+    ...audit,
+    { id: 'local_audit_login', action: t('admin.admins.auditLoginAction'), target: t('admin.admins.auditLoginTarget'), actor: '', timestamp: t('admin.admins.todayAt') },
+    { id: 'local_audit_flag', action: t('admin.admins.auditFlagAction'), target: t('admin.admins.auditFlagTarget'), actor: '', timestamp: t('admin.admins.yesterday') },
+  ];
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 18 }}>
         <Card style={{ padding: 22 }}>
-          <SectionTitle Icon={User}>Administratorzy</SectionTitle>
+          <SectionTitle Icon={Users}>{t('admin.admins.adminsTitle')}</SectionTitle>
           {admins.map((admin) => (
             <div key={admin.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: `1px solid ${C.border}` }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: C.bgMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textMedium, fontWeight: 700, fontFamily: FONT_NUM, fontSize: 13 }}>
@@ -37,12 +45,12 @@ export function AdminAdminsPage() {
           ))}
         </Card>
         <Card style={{ padding: 22 }}>
-          <SectionTitle Icon={Lock}>Role i uprawnienia (RBAC)</SectionTitle>
+          <SectionTitle Icon={Lock}>{t('admin.admins.rbacTitle')}</SectionTitle>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11.5 }}>
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'left', padding: '6px 8px', color: C.textMuted, fontWeight: 700 }}>Rola</th>
+                  <th style={{ textAlign: 'left', padding: '6px 8px', color: C.textMuted, fontWeight: 700 }}>{t('admin.admins.roleColumn')}</th>
                   {ROLE_PERMS.perms.map((permission) => <th key={permission} style={{ padding: '6px 4px', color: C.textMuted, fontWeight: 700, fontSize: 10 }}>{permission}</th>)}
                 </tr>
               </thead>
@@ -60,7 +68,7 @@ export function AdminAdminsPage() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 18 }}>
         <Card style={{ padding: 22 }}>
-          <SectionTitle Icon={Activity}>Dziennik audytowy</SectionTitle>
+          <SectionTitle Icon={Activity}>{t('admin.admins.auditLogTitle')}</SectionTitle>
           {auditAll.slice(0, 8).map((entry, index) => (
             <div key={entry.id} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: index < 7 ? `1px solid ${C.border}` : 'none' }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: entry.color || C.tealDark, marginTop: 6, flexShrink: 0 }} />
@@ -69,8 +77,8 @@ export function AdminAdminsPage() {
           ))}
         </Card>
         <Card style={{ padding: 22 }}>
-          <SectionTitle Icon={Database}>Żądania RODO</SectionTitle>
-          {!gdprRequests.length ? <p style={{ fontSize: 12.5, color: C.textMuted }}>Brak otwartych żądań.</p> : null}
+          <SectionTitle Icon={Database}>{t('admin.admins.gdprTitle')}</SectionTitle>
+          {!gdprRequests.length ? <p style={{ fontSize: 12.5, color: C.textMuted }}>{t('admin.admins.gdprEmpty')}</p> : null}
           {gdprRequests.map((request) => (
             <div key={request.id} style={{ padding: '11px 0', borderBottom: `1px solid ${C.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
@@ -78,15 +86,13 @@ export function AdminAdminsPage() {
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{request.type}</div>
                   <div style={{ fontSize: 11, color: C.textMuted }}>{request.subject} · {request.openedAt}</div>
                 </div>
-                <button onClick={() => resolveGdprRequest(request.id)} style={{ padding: '6px 11px', borderRadius: 9, border: 'none', background: C.tealDark, color: '#fff', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>Zrealizuj</button>
+                <button onClick={() => resolveGdprRequest(request.id)} style={{ padding: '6px 11px', borderRadius: 9, border: 'none', background: C.tealDark, color: '#fff', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>{t('admin.admins.fulfillAction')}</button>
               </div>
             </div>
           ))}
         </Card>
       </div>
-      <AdminDevNote>
-        TODO [backend]: konta i role administratorów (RBAC) z realnymi uprawnieniami, niezmienialny dziennik audytowy, obsługa żądań RODO (eksport/usunięcie) z potwierdzeniami i terminami.
-      </AdminDevNote>
+      <AdminDevNote>{t('admin.admins.devNote')}</AdminDevNote>
     </div>
   );
 }

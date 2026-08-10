@@ -128,6 +128,7 @@ export interface ProviderAccount {
 
 export type AdminRouteKey =
   | 'dashboard'
+  | 'queue'
   | 'verification'
   | 'providers'
   | 'subscriptions'
@@ -135,6 +136,7 @@ export type AdminRouteKey =
   | 'reports'
   | 'apiIntegrations'
   | 'analytics'
+  | 'catalog'
   | 'communication'
   | 'settings'
   | 'admins';

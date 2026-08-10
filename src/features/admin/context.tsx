@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { AdminActivityLogEntry } from '../../shared/types/furli';
 import { nowLabel } from '../../shared/utils/furli';
@@ -12,6 +12,9 @@ import type {
   AdminReferralCode,
   AdminReviewRecord,
 } from './model';
+import { serviceKeyFromName } from '../../shared/constants/serviceCatalog';
+import type { CatalogKind } from './catalog';
+import type { ProviderType } from '../../shared/types/furli';
 
 const STORAGE_KEY = 'furli_admin_v1';
 
@@ -19,6 +22,8 @@ interface AdminContextValue extends AdminSeedData {
   pendingVerificationCount: number;
   accessToken: string;
   activity: AdminActivityLogEntry[];
+  toast: string;
+  showToast: (message: string) => void;
   refreshActivity: () => Promise<void>;
   getProvider: (providerId: string) => AdminProviderRecord | null;
   mergeProviders: (providers: AdminProviderRecord[]) => void;
@@ -32,6 +37,10 @@ interface AdminContextValue extends AdminSeedData {
   addReferralCode: () => void;
   toggleFeatureFlag: (flagId: string) => void;
   resolveGdprRequest: (requestId: string) => void;
+  addCatalogEntry: (kind: CatalogKind, type: ProviderType, label: string, sub: string) => void;
+  updateCatalogEntry: (kind: CatalogKind, id: string, label: string, sub: string) => void;
+  setCatalogEntryHidden: (kind: CatalogKind, id: string, hidden: boolean) => void;
+  deleteCatalogEntry: (kind: CatalogKind, id: string) => void;
 }
 
 const AdminContext = createContext<AdminContextValue | null>(null);
@@ -42,7 +51,10 @@ function loadAdminState(): AdminSeedData {
     if (!raw) {
       return createAdminSeedData();
     }
-    return JSON.parse(raw) as AdminSeedData;
+    // Merge over a fresh seed rather than trusting the stored blob's shape outright - a session
+    // saved before a new slice (e.g. catalogOverlay) was added would otherwise come back missing
+    // it entirely and crash the first screen that reads it.
+    return { ...createAdminSeedData(), ...(JSON.parse(raw) as Partial<AdminSeedData>) };
   } catch {
     return createAdminSeedData();
   }
@@ -65,6 +77,24 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
   const [state, setState] = useState<AdminSeedData>(() => loadAdminState());
   const [remotePendingCount, setRemotePendingCount] = useState<number | null>(null);
   const [activity, setActivity] = useState<AdminActivityLogEntry[]>([]);
+  const [toast, setToast] = useState('');
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Single global toast, one at a time - a second call restarts the 2.6s window rather than
+  // letting an earlier pending dismiss cut the new message short.
+  const showToast = useCallback((message: string) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast(message);
+    toastTimeoutRef.current = setTimeout(() => setToast(''), 2600);
+  }, []);
+
+  useEffect(() => () => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -150,6 +180,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     ...state,
     accessToken,
     activity,
+    toast,
+    showToast,
     refreshActivity,
     pendingVerificationCount: remotePendingCount ?? state.providers.filter((provider) => provider.verificationStatus === 'pending' || provider.verificationStatus === 'changes_requested').length,
     getProvider: (providerId: string) => state.providers.find((provider) => provider.id === providerId) || null,
@@ -253,7 +285,72 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, state]);
+    // Catalogs (services/specialties) are closed lists the provider panel picks from rather than
+    // free text - see shared/constants/serviceCatalog.ts. The seed lists are the grain; everything
+    // added/edited/hidden from this screen lives as an overlay on top, same split the mockup uses,
+    // so re-seeding the base list later never wipes what an operator added.
+    addCatalogEntry: (kind, type, label, sub) => {
+      const trimmedLabel = label.trim();
+      if (!trimmedLabel) {
+        return;
+      }
+      const id = serviceKeyFromName(trimmedLabel);
+      if (!id) {
+        return;
+      }
+      setState((current) => {
+        const overlay = current.catalogOverlay[kind];
+        if (overlay.added.some((entry) => entry.id === id && entry.type === type)) {
+          return current;
+        }
+        return {
+          ...current,
+          catalogOverlay: {
+            ...current.catalogOverlay,
+            [kind]: { ...overlay, added: [...overlay.added, { id, type, label: trimmedLabel, sub: sub.trim() }] },
+          },
+          audit: pushAudit(kind === 'services' ? 'Dodano usługę do katalogu' : 'Dodano specjalizację do katalogu', trimmedLabel, current.audit),
+        };
+      });
+    },
+    updateCatalogEntry: (kind, id, label, sub) => {
+      setState((current) => {
+        const overlay = current.catalogOverlay[kind];
+        return {
+          ...current,
+          catalogOverlay: {
+            ...current.catalogOverlay,
+            [kind]: { ...overlay, edited: { ...overlay.edited, [id]: { label, sub } } },
+          },
+          audit: pushAudit(kind === 'services' ? 'Zmieniono usługę w katalogu' : 'Zmieniono specjalizację w katalogu', label, current.audit),
+        };
+      });
+    },
+    setCatalogEntryHidden: (kind, id, hidden) => {
+      setState((current) => {
+        const overlay = current.catalogOverlay[kind];
+        const nextHidden = hidden ? [...overlay.hidden, id] : overlay.hidden.filter((entryId) => entryId !== id);
+        return {
+          ...current,
+          catalogOverlay: { ...current.catalogOverlay, [kind]: { ...overlay, hidden: nextHidden } },
+          audit: pushAudit(hidden ? 'Ukryto pozycję katalogu' : 'Przywrócono pozycję katalogu', id, current.audit),
+        };
+      });
+    },
+    deleteCatalogEntry: (kind, id) => {
+      setState((current) => {
+        const overlay = current.catalogOverlay[kind];
+        return {
+          ...current,
+          catalogOverlay: {
+            ...current.catalogOverlay,
+            [kind]: { ...overlay, added: overlay.added.filter((entry) => entry.id !== id), hidden: overlay.hidden.filter((entryId) => entryId !== id) },
+          },
+          audit: pushAudit('Usunięto pozycję katalogu', id, current.audit),
+        };
+      });
+    },
+  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, showToast, state, toast]);
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }

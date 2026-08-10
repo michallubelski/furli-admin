@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { Check, Minus, Plus } from '../icons';
+import { AlertTriangle, Check, Minus, Plus } from '../icons';
 import { C, FONT_BODY, FONT_HEAD, FONT_NUM, shadow } from '../constants/theme';
 import type { CardProps } from '../types/furli';
 import { useI18n } from '../i18n';
@@ -376,4 +376,85 @@ export function useIsMobile(bp = 860): boolean {
     return () => window.removeEventListener('resize', onResize);
   }, [bp]);
   return mobile;
+}
+
+// Type-to-confirm guard for operations that are reversible but high-impact (e.g. suspending a
+// facility cuts it off from every new booking platform-wide) - ported from the mockup's
+// ConfirmDangerModal. The confirm button stays disabled until the typed text matches `confirmWord`
+// (case-insensitive/trimmed), so the admin can't click through on autopilot.
+export function ConfirmDangerModal({
+  open,
+  title,
+  body,
+  confirmWord,
+  actionLabel,
+  danger = true,
+  onConfirm,
+  onClose,
+}: {
+  open: boolean;
+  title: string;
+  body: string;
+  confirmWord: string;
+  actionLabel: string;
+  danger?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setText('');
+    }
+  }, [open]);
+
+  if (!open) {
+    return null;
+  }
+
+  const disabled = text.trim().toLowerCase() !== confirmWord.trim().toLowerCase();
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'oklch(0.25 0.03 55 / 0.5)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 24 }}
+    >
+      <div
+        onClick={(event) => event.stopPropagation()}
+        style={{ background: C.bgCard, borderRadius: isMobile ? '18px 18px 0 0' : 18, width: '100%', maxWidth: isMobile ? '100%' : 460, padding: 24, boxShadow: '0 24px 70px rgba(0,0,0,0.28)' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 10 }}>
+          <span style={{ width: 40, height: 40, borderRadius: 12, background: danger ? 'oklch(0.95 0.04 15)' : C.greenLight, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <AlertTriangle size={19} color={danger ? C.roseDark : C.green} />
+          </span>
+          <span style={{ fontFamily: FONT_HEAD, fontSize: 19, fontWeight: 700 }}>{title}</span>
+        </div>
+        <p style={{ fontSize: 13.5, color: C.textSecondary, lineHeight: 1.6, margin: '0 0 14px' }}>{body}</p>
+        <label style={{ fontSize: 12, fontWeight: 700, color: C.textSecondary, display: 'block', marginBottom: 6 }}>
+          {t('common.confirmDangerModal.typeToConfirmLabel')} <span style={{ fontFamily: 'monospace', color: C.text }}>{confirmWord}</span>
+        </label>
+        <input
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          placeholder={confirmWord}
+          style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgInput, fontSize: 15, fontFamily: FONT_BODY, color: C.text }}
+        />
+        <div style={{ display: 'flex', gap: 9, marginTop: 16 }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.textSecondary, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: FONT_BODY }}>
+            {t('common.actions.cancel')}
+          </button>
+          <button
+            onClick={() => { if (!disabled) { onConfirm(); onClose(); } }}
+            disabled={disabled}
+            style={{ flex: 1, padding: '12px 0', borderRadius: 11, border: 'none', background: disabled ? C.bgMuted : (danger ? C.roseDark : C.green), color: disabled ? C.textMuted : '#fff', fontSize: 14, fontWeight: 700, cursor: disabled ? 'default' : 'pointer', fontFamily: FONT_BODY }}
+          >
+            {actionLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

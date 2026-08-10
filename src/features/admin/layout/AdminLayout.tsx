@@ -12,6 +12,7 @@ import { useAdminState } from '../context';
 // (admin.furliplus.pl), unlike furli-fronted where this same file lived under a `/admin/*`
 // sub-route of a multi-role app.
 function resolveAdminRouteKey(pathname: string): AdminRouteKey {
+  if (pathname.startsWith('/queue')) return 'queue';
   if (pathname.startsWith('/verification')) return 'verification';
   if (pathname.startsWith('/providers')) return 'providers';
   if (pathname.startsWith('/subscriptions')) return 'subscriptions';
@@ -19,6 +20,7 @@ function resolveAdminRouteKey(pathname: string): AdminRouteKey {
   if (pathname.startsWith('/reports')) return 'reports';
   if (pathname.startsWith('/api-integrations')) return 'apiIntegrations';
   if (pathname.startsWith('/analytics')) return 'analytics';
+  if (pathname.startsWith('/catalog')) return 'catalog';
   if (pathname.startsWith('/communication')) return 'communication';
   if (pathname.startsWith('/settings')) return 'settings';
   if (pathname.startsWith('/admins')) return 'admins';
@@ -30,7 +32,7 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { pendingVerificationCount } = useAdminState();
+  const { pendingVerificationCount, toast } = useAdminState();
   const navSections = useMemo(() => buildAdminNav(t), [t]);
   const pageMeta = useMemo(() => buildAdminPageMeta(t)[resolveAdminRouteKey(location.pathname)], [t, location.pathname]);
 
@@ -125,6 +127,11 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
       </div>
+      {toast ? (
+        <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', padding: '13px 24px', borderRadius: 12, background: 'oklch(0.25 0.03 55)', color: '#fff', fontSize: 14, fontWeight: 500, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: '90vw' }}>
+          {toast}
+        </div>
+      ) : null}
     </div>
   );
 }

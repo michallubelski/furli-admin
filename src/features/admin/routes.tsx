@@ -3,10 +3,12 @@ import { AdminStateProvider } from './context';
 import { AdminLayout } from './layout/AdminLayout';
 import { AdminAdminsPage } from './pages/AdminsPage';
 import { AdminAnalyticsPage } from './pages/AnalyticsPage';
+import { AdminCatalogPage } from './pages/CatalogPage';
 import { AdminCommunicationPage } from './pages/CommunicationPage';
 import { AdminDashboardPage } from './pages/DashboardPage';
 import { AdminIntegrationsPage } from './pages/IntegrationsPage';
 import { AdminProvidersPage } from './pages/ProvidersPage';
+import { AdminQueuePage } from './pages/QueuePage';
 import { AdminReportsPage } from './pages/ReportsPage';
 import { AdminReviewsPage } from './pages/ReviewsPage';
 import { AdminSettingsPage } from './pages/SettingsPage';
@@ -19,6 +21,7 @@ export function AdminRoutes({ accessToken, onLogout }: { accessToken: string; on
       <Routes>
         <Route element={<AdminLayout onLogout={onLogout} />}>
           <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="queue" element={<AdminQueuePage />} />
           <Route path="verification" element={<AdminVerificationPage />} />
           <Route path="providers" element={<AdminProvidersPage />} />
           <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
@@ -26,6 +29,7 @@ export function AdminRoutes({ accessToken, onLogout }: { accessToken: string; on
           <Route path="reports" element={<AdminReportsPage />} />
           <Route path="api-integrations" element={<AdminIntegrationsPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="catalog" element={<AdminCatalogPage />} />
           <Route path="communication" element={<AdminCommunicationPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="admins" element={<AdminAdminsPage />} />

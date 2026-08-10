@@ -11,6 +11,8 @@ import type {
   AdminReviewRecord,
   AdminUserRecord,
 } from './model';
+import type { CatalogOverlay } from './catalog';
+import { emptyCatalogOverlay } from './catalog';
 
 export interface AdminSeedData {
   providers: AdminProviderRecord[];
@@ -24,6 +26,7 @@ export interface AdminSeedData {
   plans: AdminPlanConfig[];
   admins: AdminUserRecord[];
   gdprRequests: AdminGdprRequest[];
+  catalogOverlay: { services: CatalogOverlay; specialties: CatalogOverlay };
 }
 
 export function createAdminSeedData(): AdminSeedData {
@@ -43,17 +46,30 @@ export function createAdminSeedData(): AdminSeedData {
     reviews: [
       { id: 'r1', providerName: 'Akademia Psa FURLI', author: 'Marta N.', rating: 2, text: 'Trener spóźnił się 25 minut i nie oddzwonił.', date: '2 lip 2026', reason: 'Zgłoszenie placówki', status: 'reported' },
       { id: 'r2', providerName: 'Spacer Team Poznań', author: 'Łukasz K.', rating: 1, text: 'Usługa została anulowana bez informacji.', date: '1 lip 2026', reason: 'Spór klienta', status: 'hidden' },
-      { id: 'r3', providerName: 'Akademia Psa FURLI', author: 'Alicja T.', rating: 5, text: 'Bardzo dobry kontakt i plan treningowy.', date: '30 cze 2026', reason: 'Brak zgłoszeń', status: 'published' },
+      {
+        id: 'r3',
+        providerName: 'Akademia Psa FURLI',
+        author: 'Alicja T.',
+        rating: 5,
+        text: 'Bardzo dobry kontakt i plan treningowy.',
+        date: '30 cze 2026',
+        reason: 'Brak zgłoszeń',
+        status: 'published',
+        staffName: 'Kamil Trener',
+        staffRating: 5,
+        staffText: 'Kamil świetnie dogadał się z moim psem, widać doświadczenie.',
+        staffReply: 'Dziękuję, do zobaczenia na kolejnym treningu!',
+      },
     ],
     reports: [
-      { id: 'rep1', type: 'Spór rezerwacyjny', subject: 'Brak zwrotu za anulowaną wizytę', providerName: 'Spacer Team Poznań', openedAt: '3 lip 2026', status: 'open', priority: 'Wysoka' },
-      { id: 'rep2', type: 'Treść opinii', subject: 'Podejrzenie opinii nie od klienta', providerName: 'Akademia Psa FURLI', openedAt: '2 lip 2026', status: 'investigating', priority: 'Średnia' },
-      { id: 'rep3', type: 'Regulamin placówki', subject: 'Brak wymaganych informacji', providerName: 'Psi Fryzjer Premium', openedAt: '1 lip 2026', status: 'resolved', priority: 'Niska' },
+      { id: 'rep1', type: 'Spór rezerwacyjny', subject: 'Brak zwrotu za anulowaną wizytę', providerName: 'Spacer Team Poznań', reporter: 'Klient: Marek Nowak', detail: 'Klient zgłasza brak zwrotu środków za wizytę anulowaną przez placówkę.', openedAt: '3 lip 2026', status: 'open', priority: 'Wysoka' },
+      { id: 'rep2', type: 'Treść opinii', subject: 'Podejrzenie opinii nie od klienta', providerName: 'Akademia Psa FURLI', reporter: 'Moderacja automatyczna', detail: 'Opinia wygląda na wystawioną przez osobę niepowiązaną z rezerwacją.', openedAt: '2 lip 2026', status: 'investigating', priority: 'Średnia' },
+      { id: 'rep3', type: 'Regulamin placówki', subject: 'Brak wymaganych informacji', providerName: 'Psi Fryzjer Premium', reporter: 'Zespół weryfikacji', detail: 'W profilu placówki brakuje wymaganych informacji o regulaminie świadczenia usług.', openedAt: '1 lip 2026', status: 'resolved', priority: 'Niska' },
     ],
     integrations: [
-      { id: 'api1', providerName: 'Akademia Psa FURLI', systemName: 'PMS Clinic Pro', scope: 'bookings.read, availability.write', status: 'active', lastSync: '3 lip 2026, 14:05' },
-      { id: 'api2', providerName: 'Klinika Cztery Łapy', systemName: 'VetSoft ERP', scope: 'profile.write, bookings.read', status: 'pending', lastSync: 'Nie dotyczy' },
-      { id: 'api3', providerName: 'Spacer Team Poznań', systemName: 'Custom API', scope: 'bookings.read', status: 'revoked', lastSync: '26 cze 2026, 09:44' },
+      { id: 'api1', providerName: 'Akademia Psa FURLI', systemName: 'PMS Clinic Pro', clientId: 'furli_client_8a21f0', env: 'production', scope: 'bookings.read, availability.write', status: 'active', lastEvent: '3 lip 2026, 14:05', webhookOk: true },
+      { id: 'api2', providerName: 'Klinika Cztery Łapy', systemName: 'VetSoft ERP', clientId: 'furli_client_5c9d3e', env: 'sandbox', scope: 'profile.write, bookings.read', status: 'pending', lastEvent: 'Nie dotyczy', webhookOk: false },
+      { id: 'api3', providerName: 'Spacer Team Poznań', systemName: 'Custom API', clientId: 'furli_client_1f7b6a', env: 'production', scope: 'bookings.read', status: 'revoked', lastEvent: '26 cze 2026, 09:44', webhookOk: false },
     ],
     broadcasts: [
       { id: 'b1', title: 'Zmiana regulaminu płatności online', audience: 'Wszystkie placówki', channel: 'E-mail + panel', sentAt: '1 lip 2026' },
@@ -73,13 +89,14 @@ export function createAdminSeedData(): AdminSeedData {
       { id: 'connected', name: 'Integracja kalendarza', price: '99 zł / mies.', description: 'Widoczność w marketplace z synchronizacją zajętości.' },
     ],
     admins: [
-      { id: 'adm1', name: 'Aleksandra Orłowska', email: 'admin@furli.pl', roleLabel: 'Super Admin', lastSeen: '3 lip 2026, 14:30', presenceLabel: 'online' },
-      { id: 'adm2', name: 'Anna Domańska', email: 'anna.admin@furli.pl', roleLabel: 'Moderacja', lastSeen: '3 lip 2026, 12:15', presenceLabel: 'dziś' },
-      { id: 'adm3', name: 'Piotr Wysocki', email: 'ops@furli.pl', roleLabel: 'Operacje', lastSeen: '2 lip 2026, 18:04', presenceLabel: 'wczoraj' },
+      { id: 'adm1', name: 'Administrator', email: 'admin@furli.pl', roleLabel: 'Owner', lastSeen: 'online', presenceLabel: 'online' },
+      { id: 'adm2', name: 'Katarzyna Weryfikacja', email: 'kasia@furli.pl', roleLabel: 'Weryfikator', lastSeen: '15 min temu' },
+      { id: 'adm3', name: 'Paweł Support', email: 'pawel@furli.pl', roleLabel: 'Support', lastSeen: '2 godz. temu' },
     ],
     gdprRequests: [
       { id: 'gdpr1', type: 'Eksport danych', subject: 'Akademia Psa FURLI', openedAt: '2 lip 2026' },
       { id: 'gdpr2', type: 'Usunięcie danych', subject: 'Klient końcowy #U-1024', openedAt: '1 lip 2026' },
     ],
+    catalogOverlay: { services: emptyCatalogOverlay(), specialties: emptyCatalogOverlay() },
   };
 }

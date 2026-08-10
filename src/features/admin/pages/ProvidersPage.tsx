@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Ban, Eye, Play } from '../../../shared/icons';
-import { Card } from '../../../shared/components/ui';
+import { Card, ConfirmDangerModal } from '../../../shared/components/ui';
 import { ApiClientError } from '../../../shared/api/client';
 import { C } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
@@ -21,13 +21,14 @@ export function AdminProvidersPage() {
     { id: 'suspended', label: t('admin.providers.filters.suspended') },
     { id: 'rejected', label: t('admin.providers.filters.rejected') },
   ];
-  const { providers, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity } = useAdminState();
+  const { providers, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, showToast } = useAdminState();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<AdminProviderListFilter>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const providerId = searchParams.get('providerId') || '';
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
+  const [confirmTarget, setConfirmTarget] = useState<AdminProviderRecord | null>(null);
 
   const rows = useMemo(() => providers.filter((provider) => {
     const matchQuery = !query || provider.name.toLowerCase().includes(query.toLowerCase()) || provider.city.toLowerCase().includes(query.toLowerCase());
@@ -64,6 +65,7 @@ export function AdminProvidersPage() {
       mergeProviders([mapAdminProviderDto(response, provider)]);
       await refreshPendingVerificationCount();
       await refreshActivity();
+      showToast(t(provider.suspended ? 'admin.providers.confirmSuspend.reactivateSuccess' : 'admin.providers.confirmSuspend.suspendSuccess'));
     } catch (error) {
       setActionError(error instanceof ApiClientError ? error.message : t('admin.providers.suspendToggleFailed'));
     } finally {
@@ -112,7 +114,7 @@ export function AdminProvidersPage() {
                 {provider.verificationStatus === 'approved' ? (
                   <button
                     disabled={toggling}
-                    onClick={() => void handleToggleSuspend(provider)}
+                    onClick={() => setConfirmTarget(provider)}
                     style={{ padding: '8px 12px', borderRadius: 10, border: 'none', background: provider.suspended ? C.green : 'oklch(0.95 0.04 15)', color: provider.suspended ? '#fff' : C.roseDark, fontSize: 12, fontWeight: 700, cursor: toggling ? 'default' : 'pointer', opacity: toggling ? 0.65 : 1, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                   >
                     {provider.suspended ? <><Play size={13} /> {t('admin.providers.reactivateAction')}</> : <><Ban size={13} /> {t('common.actions.suspend')}</>}
@@ -124,6 +126,16 @@ export function AdminProvidersPage() {
         })}
       </Card>
       {providerId ? <ProviderDetailsModal providerId={providerId} onClose={closeModal} /> : null}
+      <ConfirmDangerModal
+        open={!!confirmTarget}
+        danger={confirmTarget ? !confirmTarget.suspended : true}
+        title={t(confirmTarget?.suspended ? 'admin.providers.confirmSuspend.reactivateTitle' : 'admin.providers.confirmSuspend.suspendTitle')}
+        body={t(confirmTarget?.suspended ? 'admin.providers.confirmSuspend.reactivateBody' : 'admin.providers.confirmSuspend.suspendBody', { name: confirmTarget?.name || '' })}
+        confirmWord={confirmTarget?.name || ''}
+        actionLabel={t(confirmTarget?.suspended ? 'admin.providers.confirmSuspend.reactivateAction' : 'admin.providers.confirmSuspend.suspendAction')}
+        onConfirm={() => { if (confirmTarget) void handleToggleSuspend(confirmTarget); }}
+        onClose={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }
