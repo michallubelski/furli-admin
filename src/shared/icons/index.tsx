@@ -35,6 +35,7 @@ export const Mail = wrap(Lucide.Mail);
 export const Zap = wrap(Lucide.Zap);
 export const Hand = wrap(Lucide.Hand);
 export const ChevronRight = wrap(Lucide.ChevronRight);
+export const ChevronLeft = wrap(Lucide.ChevronLeft);
 export const Sparkles = wrap(Lucide.Sparkles);
 export const Link2 = wrap(Lucide.Link2);
 export const Pencil = wrap(Lucide.Pencil);

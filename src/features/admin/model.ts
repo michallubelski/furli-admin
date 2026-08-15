@@ -1,4 +1,4 @@
-import type { AdminActivityActionCode, VerificationStatus } from '../../shared/types/furli';
+import type { AdminActivityActionCode, BillingPhase, PublishReadinessInfo, VerificationStatus } from '../../shared/types/furli';
 import {
   AlertCircle,
   Check,
@@ -22,7 +22,14 @@ import { C } from '../../shared/constants/theme';
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-export type AdminProviderListFilter = 'all' | 'pending' | 'approved' | 'suspended' | 'rejected';
+// v44: facility lifecycle tabs (mockup furli-admin-v6.jsx:417) - replaces the old flat
+// all/pending/approved/suspended/rejected model. "pending"/"changes_requested" verifications live
+// in Kolejka (the decision queue), not here - "registered" covers everything BEFORE publication
+// (draft/pending/changes_requested combined), since an admin reviewing this tab cares about profile
+// completeness, not the verification-decision workflow.
+export type AdminProviderListFilter = 'registered' | 'published' | 'trial' | 'grace' | 'suspended' | 'rejected' | 'expired';
+export type AdminProviderPublishedSubFilter = 'all' | 'trial' | 'paid';
+export type AdminProviderExpiredSubFilter = 'all' | 'demo' | 'paid';
 export type AdminReviewStatus = 'reported' | 'hidden' | 'published';
 export type AdminReportStatus = 'open' | 'investigating' | 'resolved';
 export type AdminIntegrationStatus = 'pending' | 'active' | 'revoked';
@@ -48,6 +55,10 @@ export interface AdminProviderRecord {
   billingPlan: 'main' | 'connected';
   monthlyValue: number;
   trialDaysLeft?: number;
+  billingPhase?: BillingPhase;
+  publishedAt?: number | null;
+  daysLeft?: number | null;
+  publishReadiness?: PublishReadinessInfo | null;
   // `label` is a stable identifier ('business' | 'profile' | 'services'), not display text -
   // see documentLabel() below for the locale-aware translation, applied at render time.
   documents: Array<{ id: string; label: string; status: 'ok' | 'missing' | 'expiring' }>;
@@ -62,6 +73,49 @@ export function billingLabel(t: Translate, status: AdminProviderRecord['billingS
     return t('admin.billing.overdue');
   }
   return t('admin.billing.trial');
+}
+
+// Richer lifecycle badge (mockup's billingBadge(), furli-admin-v6.jsx:117-136) - built from the
+// derived billingPhase instead of the flat trial/active/overdue status, so it can distinguish
+// "not published yet" from "trial running", and "never paid" from "a real subscription lapsed".
+// Falls back to the flat billingLabel() above when a record has no phase (shouldn't happen once the
+// backend always returns one, but keeps this safe for any record built before that field existed).
+export function billingPhaseMeta(t: Translate, provider: AdminProviderRecord): { label: string; color: string; bg: string } {
+  const plan = provider.billingPlan === 'connected' ? t('admin.billing.planConnectedActive') : t('admin.billing.planMainActive');
+  switch (provider.billingPhase) {
+    case 'active':
+      return { label: t('admin.billing.phase.active', { plan }), color: C.green, bg: C.greenLight };
+    case 'onboarding':
+      return { label: t('admin.billing.phase.onboarding'), color: C.textMuted, bg: C.bgMuted };
+    case 'trial':
+      return { label: t('admin.billing.phase.trial', { days: provider.daysLeft ?? 0 }), color: C.tealDark, bg: C.tealLight };
+    case 'grace':
+      return { label: t('admin.billing.phase.grace', { days: provider.daysLeft ?? 0 }), color: C.amber, bg: 'oklch(0.96 0.06 75)' };
+    case 'dormant':
+      return { label: t('admin.billing.phase.expiredDemo'), color: C.roseDark, bg: 'oklch(0.95 0.04 15)' };
+    case 'past_due':
+    case 'canceled':
+      return { label: t('admin.billing.phase.expiredPaid'), color: C.roseDark, bg: 'oklch(0.95 0.04 15)' };
+    default:
+      return { label: billingLabel(t, provider.billingStatus, provider.billingPlan), color: C.tealDark, bg: C.tealLight };
+  }
+}
+
+const PUBLISH_REQUIREMENT_KEY: Record<string, string> = {
+  name: 'admin.publishReadiness.requirements.name',
+  description: 'admin.publishReadiness.requirements.description',
+  photos: 'admin.publishReadiness.requirements.photos',
+  specialties: 'admin.publishReadiness.requirements.specialties',
+  phone: 'admin.publishReadiness.requirements.phone',
+  email: 'admin.publishReadiness.requirements.email',
+  services: 'admin.publishReadiness.requirements.services',
+  staff: 'admin.publishReadiness.requirements.staff',
+  card: 'admin.publishReadiness.requirements.card',
+};
+
+export function publishRequirementLabel(t: Translate, id: string): string {
+  const key = PUBLISH_REQUIREMENT_KEY[id];
+  return key ? t(key) : id;
 }
 
 const DOCUMENT_LABEL_KEY: Record<string, string> = {

@@ -3,51 +3,109 @@ import { useSearchParams } from 'react-router-dom';
 import { Ban, Eye, Play } from '../../../shared/icons';
 import { Card, ConfirmDangerModal } from '../../../shared/components/ui';
 import { ApiClientError } from '../../../shared/api/client';
-import { C } from '../../../shared/constants/theme';
+import { C, FONT_NUM } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { ProviderDetailsModal } from '../components/ProviderDetailsModal';
 import { useAdminState } from '../context';
-import type { AdminProviderListFilter, AdminProviderRecord } from '../model';
-import { providerTypeLabel } from '../model';
+import type { AdminProviderExpiredSubFilter, AdminProviderListFilter, AdminProviderPublishedSubFilter, AdminProviderRecord } from '../model';
+import { providerTypeLabel, publishRequirementLabel } from '../model';
 import { mapAdminProviderDto, reactivateProvider, suspendProvider } from '../api';
-import { AdminAvatar, AdminBadge, AdminLinkButton, BillingBadge, ProviderStatusBadge, SearchField, TabButton } from '../components/shared';
+import { AdminAvatar, AdminBadge, AdminDevNote, AdminLinkButton, BillingBadge, ProviderStatusBadge, SearchField, TabButton } from '../components/shared';
+
+// v44: the "published" tab counts an approved, unsuspended facility whose subscription is either
+// still in trial or a real paying subscription - everything past that (grace/expired) has its own
+// tab. Matches the mockup's own `published(p)` predicate (furli-admin-v6.jsx:395).
+function isPublished(provider: AdminProviderRecord): boolean {
+  return provider.verificationStatus === 'approved' && !provider.suspended && (provider.billingPhase === 'trial' || provider.billingPhase === 'active');
+}
+function isExpired(provider: AdminProviderRecord): boolean {
+  return provider.billingPhase === 'dormant' || provider.billingPhase === 'past_due' || provider.billingPhase === 'canceled';
+}
 
 export function AdminProvidersPage() {
   const { t } = useI18n();
-  const FILTERS: Array<{ id: AdminProviderListFilter; label: string }> = [
-    { id: 'all', label: t('admin.providers.filters.all') },
-    { id: 'pending', label: t('admin.providers.filters.pending') },
-    { id: 'approved', label: t('admin.providers.filters.approved') },
-    { id: 'suspended', label: t('admin.providers.filters.suspended') },
-    { id: 'rejected', label: t('admin.providers.filters.rejected') },
+  const TABS: Array<{ id: AdminProviderListFilter; label: string }> = [
+    { id: 'registered', label: t('admin.providers.tabs.registered') },
+    { id: 'published', label: t('admin.providers.tabs.published') },
+    { id: 'trial', label: t('admin.providers.tabs.trial') },
+    { id: 'grace', label: t('admin.providers.tabs.grace') },
+    { id: 'suspended', label: t('admin.providers.tabs.suspended') },
+    { id: 'rejected', label: t('admin.providers.tabs.rejected') },
+    { id: 'expired', label: t('admin.providers.tabs.expired') },
   ];
   const { providers, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, showToast } = useAdminState();
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<AdminProviderListFilter>('all');
+  const [tab, setTab] = useState<AdminProviderListFilter>('registered');
+  const [publishedSub, setPublishedSub] = useState<AdminProviderPublishedSubFilter>('all');
+  const [expiredSub, setExpiredSub] = useState<AdminProviderExpiredSubFilter>('all');
   const [searchParams, setSearchParams] = useSearchParams();
   const providerId = searchParams.get('providerId') || '';
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState('');
   const [confirmTarget, setConfirmTarget] = useState<AdminProviderRecord | null>(null);
 
+  const pickTab = (id: AdminProviderListFilter) => {
+    setTab(id);
+    setPublishedSub('all');
+    setExpiredSub('all');
+  };
+
+  const tabCounts = useMemo<Record<AdminProviderListFilter, number>>(() => ({
+    registered: providers.filter((p) => p.verificationStatus === 'pending' || p.verificationStatus === 'changes_requested' || (p.verificationStatus !== 'approved' && p.verificationStatus !== 'rejected')).length,
+    published: providers.filter(isPublished).length,
+    trial: providers.filter((p) => p.verificationStatus === 'approved' && !p.suspended && p.billingPhase === 'trial').length,
+    grace: providers.filter((p) => p.billingPhase === 'grace').length,
+    suspended: providers.filter((p) => p.suspended).length,
+    rejected: providers.filter((p) => p.verificationStatus === 'rejected').length,
+    expired: providers.filter(isExpired).length,
+  }), [providers]);
+
   const rows = useMemo(() => providers.filter((provider) => {
     const matchQuery = !query || provider.name.toLowerCase().includes(query.toLowerCase()) || provider.city.toLowerCase().includes(query.toLowerCase());
     if (!matchQuery) {
       return false;
     }
-    switch (filter) {
-      case 'pending':
-        return provider.verificationStatus === 'pending' || provider.verificationStatus === 'changes_requested';
-      case 'approved':
-        return provider.verificationStatus === 'approved' && !provider.suspended;
+    switch (tab) {
+      case 'registered':
+        // "changes_requested" stays here too - the facility is still fixing its profile, it hasn't
+        // been rejected (that's a separate, terminal decision).
+        return provider.verificationStatus !== 'approved' && provider.verificationStatus !== 'rejected';
+      case 'published': {
+        if (!isPublished(provider)) {
+          return false;
+        }
+        if (publishedSub === 'trial') {
+          return provider.billingPhase === 'trial';
+        }
+        if (publishedSub === 'paid') {
+          return provider.billingPhase === 'active';
+        }
+        return true;
+      }
+      case 'trial':
+        return provider.verificationStatus === 'approved' && !provider.suspended && provider.billingPhase === 'trial';
+      case 'grace':
+        return provider.billingPhase === 'grace';
       case 'suspended':
         return provider.suspended;
       case 'rejected':
         return provider.verificationStatus === 'rejected';
+      case 'expired': {
+        if (!isExpired(provider)) {
+          return false;
+        }
+        if (expiredSub === 'demo') {
+          return provider.billingPhase === 'dormant';
+        }
+        if (expiredSub === 'paid') {
+          return provider.billingPhase === 'past_due' || provider.billingPhase === 'canceled';
+        }
+        return true;
+      }
       default:
         return true;
     }
-  }), [providers, query, filter]);
+  }), [providers, query, tab, publishedSub, expiredSub]);
 
   const closeModal = () => {
     const nextParams = new URLSearchParams(searchParams);
@@ -83,13 +141,30 @@ export function AdminProvidersPage() {
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
         <SearchField value={query} onChange={setQuery} placeholder={t('admin.providers.searchPlaceholder')} />
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {FILTERS.map((item) => <TabButton key={item.id} active={filter === item.id} label={item.label} onClick={() => setFilter(item.id)} />)}
+          {TABS.map((item) => <TabButton key={item.id} active={tab === item.id} label={item.label} count={tabCounts[item.id]} onClick={() => pickTab(item.id)} />)}
         </div>
       </div>
+      {tab === 'published' || tab === 'expired' ? (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 14, marginTop: -4 }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('admin.providers.subfilterLabel')}</span>
+          {tab === 'published'
+            ? (['all', 'trial', 'paid'] as const).map((id) => (
+              <button key={id} onClick={() => setPublishedSub(id)} style={{ padding: '7px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${publishedSub === id ? C.tealDark : C.border}`, background: publishedSub === id ? C.tealLight : C.bgCard, color: publishedSub === id ? C.tealDark : C.textMedium }}>
+                {t(`admin.providers.publishedSub.${id}`)}
+              </button>
+            ))
+            : (['all', 'demo', 'paid'] as const).map((id) => (
+              <button key={id} onClick={() => setExpiredSub(id)} style={{ padding: '7px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: `1px solid ${expiredSub === id ? C.tealDark : C.border}`, background: expiredSub === id ? C.tealLight : C.bgCard, color: expiredSub === id ? C.tealDark : C.textMedium }}>
+                {t(`admin.providers.expiredSub.${id}`)}
+              </button>
+            ))}
+        </div>
+      ) : null}
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         {!rows.length ? <div style={{ padding: 40, textAlign: 'center', fontSize: 14, color: C.textMuted }}>{t('admin.providers.emptyResults')}</div> : null}
         {rows.map((provider, index) => {
           const toggling = togglingId === provider.id;
+          const readiness = provider.publishReadiness;
           return (
             <div key={provider.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderBottom: index < rows.length - 1 ? `1px solid ${C.border}` : 'none', flexWrap: 'wrap' }}>
               <AdminAvatar provider={provider} size={42} />
@@ -102,10 +177,29 @@ export function AdminProvidersPage() {
                   {providerTypeLabel(t, provider.typeLabel)} · {provider.city} · {provider.rating > 0 ? `★ ${String(provider.rating).replace('.', ',')} (${provider.reviewsCount})` : t('admin.providers.noReviews')}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
-                <ProviderStatusBadge provider={provider} />
-                <BillingBadge provider={provider} />
-              </div>
+              {tab === 'registered' && readiness ? (
+                // v44: on the "Zarejestrowane" tab the admin cares about profile completeness, not
+                // billing (the trial doesn't run before publication anyway) - mirrors the mockup's
+                // own completeness bar (furli-admin-v6.jsx:473-486).
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 210, maxWidth: 280 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 7, borderRadius: 999, background: C.bgMuted, overflow: 'hidden' }}>
+                      <div style={{ width: `${readiness.pct}%`, height: '100%', borderRadius: 999, background: readiness.pct >= 80 ? C.green : readiness.pct >= 50 ? C.amber : C.roseDark }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: C.textSecondary, fontFamily: FONT_NUM }}>{readiness.pct}%</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {readiness.missing.length
+                      ? t('admin.providers.completeness.missing', { list: readiness.missing.map((id) => publishRequirementLabel(t, id)).join(', ') })
+                      : t('admin.providers.completeness.complete')}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <ProviderStatusBadge provider={provider} />
+                  <BillingBadge provider={provider} />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 7 }}>
                 <AdminLinkButton to={`/providers?providerId=${provider.id}`}>
                   <Eye size={13} />
@@ -125,6 +219,7 @@ export function AdminProvidersPage() {
           );
         })}
       </Card>
+      <AdminDevNote>{t('admin.providers.devNote')}</AdminDevNote>
       {providerId ? <ProviderDetailsModal providerId={providerId} onClose={closeModal} /> : null}
       <ConfirmDangerModal
         open={!!confirmTarget}

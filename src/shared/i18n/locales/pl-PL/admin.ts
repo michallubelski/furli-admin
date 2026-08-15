@@ -16,6 +16,7 @@ export const admin: TranslationNode = {
     communication: 'Komunikacja',
     settings: 'Konfiguracja',
     admins: 'Administratorzy',
+    more: 'Więcej',
   },
   routes: {
     dashboard: { title: 'Pulpit', subtitle: 'Przegląd operacyjny platformy FURLI' },
@@ -31,6 +32,7 @@ export const admin: TranslationNode = {
     communication: { title: 'Komunikacja', subtitle: 'Ogłoszenia operacyjne i kody polecające' },
     settings: { title: 'Konfiguracja platformy', subtitle: 'Plany, flagi i ustawienia systemowe' },
     admins: { title: 'Administratorzy', subtitle: 'RBAC, audyt i zgłoszenia RODO' },
+    more: { title: 'Więcej', subtitle: 'Pozostałe moduły panelu' },
   },
   layout: {
     badgeLabel: 'Admin',
@@ -44,7 +46,6 @@ export const admin: TranslationNode = {
       many: '{count} do weryfikacji',
       other: '{count} do weryfikacji',
     },
-    menuLabel: 'Menu',
   },
   status: {
     pending: 'Oczekuje',
@@ -114,12 +115,33 @@ export const admin: TranslationNode = {
     notePlaceholder: 'Krótka notatka dla placówki...',
   },
   providers: {
-    filters: {
-      all: 'Wszystkie',
-      pending: 'Oczekujące',
-      approved: 'Aktywne',
+    // v44: cykl życia placówki (mockup furli-admin-v6.jsx:417) zastępuje płaski podział
+    // wszystkie/oczekujące/aktywne/zawieszone/odrzucone - "pending"/"changes_requested" żyją teraz
+    // wyłącznie w Kolejce, ten ekran pyta "na jakim etapie cyklu życia jest placówka".
+    tabs: {
+      registered: 'Zarejestrowane',
+      published: 'Opublikowane',
+      trial: 'W okresie próbnym',
+      grace: 'W okresie karencji',
       suspended: 'Zawieszone',
       rejected: 'Odrzucone',
+      expired: 'Wygasłe',
+    },
+    subfilterLabel: 'Podfiltr:',
+    publishedSub: {
+      all: 'Wszystkie',
+      trial: 'W okresie próbnym · aktywne demo',
+      paid: 'Po okresie próbnym · płatność',
+    },
+    expiredSub: {
+      all: 'Wszystkie',
+      demo: 'Po okresie demo',
+      paid: 'Na płatności',
+    },
+    completeness: {
+      missing: 'Brakuje: {list}',
+      complete: 'Profil kompletny — gotowy do weryfikacji',
+      note: 'Notatka: {note}',
     },
     searchPlaceholder: 'Szukaj po nazwie lub mieście...',
     emptyResults: 'Brak placówek dla tych kryteriów.',
@@ -136,6 +158,7 @@ export const admin: TranslationNode = {
       suspendSuccess: 'Placówka zawieszona — zniknęła z wyszukiwarki FURLI',
       reactivateSuccess: 'Placówka odblokowana — wróciła do wyszukiwarki',
     },
+    devNote: 'Zakładki = cykl życia placówki: Zarejestrowane (po rejestracji, przed publikacją — okres próbny nie biegnie, startuje od zatwierdzenia) → Opublikowane (widoczne w B2C; podfiltr demo/płatność) → W okresie karencji (brak subskrypcji po trialu/płatności — ukryta w B2C od razu, panel działa) → Zawieszone / Odrzucone / Wygasłe (po karencji bez zapłaty). „Wygasłe" rozróżnia po okresie demo (nigdy nie płaciła) i na płatności (subskrypcja nieudana/anulowana). Weryfikacje (oczekujące / do uzupełnienia) obsługuje Kolejka.',
   },
   subscriptions: {
     kpi: {
@@ -178,6 +201,31 @@ export const admin: TranslationNode = {
     planConnectedActive: 'Plan Connected',
     overdue: 'Płatność zaległa',
     trial: 'Okres próbny',
+    phase: {
+      active: 'Subskrypcja · {plan}',
+      onboarding: 'Okres próbny od publikacji',
+      trial: 'Okres próbny · {days} dni',
+      grace: 'Okres karencji · {days} dni',
+      expiredDemo: 'Wygasła · po okresie demo',
+      expiredPaid: 'Wygasła · nieudana płatność',
+    },
+  },
+  publishReadiness: {
+    requirements: {
+      name: 'nazwa',
+      description: 'opis',
+      photos: 'zdjęcia',
+      specialties: 'specjalizacje',
+      phone: 'telefon',
+      email: 'e-mail',
+      services: 'cennik usług',
+      staff: 'zespół',
+      card: 'metoda płatności',
+    },
+    modalBanner: {
+      title: 'Profil niekompletny — {pct}% ({done} z {total})',
+      description: 'Brakuje: {missing}. Zatwierdzenie jest zablokowane — poproś o uzupełnienie.',
+    },
   },
   providerDocument: {
     business: 'Dane działalności',

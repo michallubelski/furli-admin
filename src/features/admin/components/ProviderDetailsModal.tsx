@@ -7,7 +7,7 @@ import { useI18n } from '../../../shared/i18n';
 import type { ProviderAccount } from '../../../shared/types/furli';
 import { approveProvider, getAdminProvider, mapAdminProviderDto, reactivateProvider, rejectProvider, requestProviderChanges, suspendProvider } from '../api';
 import { useAdminState } from '../context';
-import { activityActionLabel, adminActionButtonStyle, documentLabel, providerTypeLabel, type AdminProviderRecord } from '../model';
+import { activityActionLabel, adminActionButtonStyle, documentLabel, providerTypeLabel, publishRequirementLabel, type AdminProviderRecord } from '../model';
 import { AdminAvatar, AdminBadge, BillingBadge, ProviderStatusBadge } from './shared';
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -194,7 +194,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
   }
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'oklch(0.2 0.02 60 / 0.56)', zIndex: 80, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '5vh 16px', overflowY: 'auto' }}>
+    <div onClick={onClose} className="furli-sheet-back" style={{ position: 'fixed', inset: 0, background: 'oklch(0.2 0.02 60 / 0.56)', zIndex: 80, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '5vh 16px', overflowY: 'auto' }}>
       <div onClick={(event) => event.stopPropagation()} style={{ width: '100%', maxWidth: 720, background: C.bgCard, borderRadius: 20, boxShadow: '0 24px 70px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
         <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 14 }}>
           {displayProvider ? <AdminAvatar provider={displayProvider} size={52} /> : <div style={{ width: 52, height: 52, borderRadius: 16, background: C.bgMuted }} />}
@@ -266,6 +266,20 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
               </div>
 
               <div style={{ display: 'grid', gap: 20 }}>
+                {/* v44: gotowość do publikacji liczona tą samą funkcją, którą widzi placówka w
+                    swoim panelu (backend's PublishReadinessService) - the admin sees exactly what
+                    the facility still had to complete, only while it isn't ready yet (mockup
+                    furli-admin-v6.jsx:552-566). */}
+                {displayProvider.publishReadiness && !displayProvider.publishReadiness.ready ? (
+                  <div style={{ padding: '11px 13px', borderRadius: 11, background: 'oklch(0.96 0.05 75 / 0.5)', border: `1px solid ${C.border}` }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text }}>
+                      {t('admin.publishReadiness.modalBanner.title', { pct: displayProvider.publishReadiness.pct, done: displayProvider.publishReadiness.done, total: displayProvider.publishReadiness.total })}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: C.textSecondary, lineHeight: 1.5, marginTop: 3 }}>
+                      {t('admin.publishReadiness.modalBanner.description', { missing: displayProvider.publishReadiness.missing.map((id) => publishRequirementLabel(t, id)).join(', ') })}
+                    </div>
+                  </div>
+                ) : null}
                 <div>
                   <SectionTitle Icon={FileText}>{t('admin.providerModal.sections.documentsRegistration')}</SectionTitle>
                   <div style={{ display: 'grid', gap: 8 }}>

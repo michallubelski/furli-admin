@@ -78,6 +78,10 @@ export function mapAdminProviderDto(dto: AdminProviderDto, current?: AdminProvid
     billingPlan,
     monthlyValue: dto.monthlyValue ?? 0,
     trialDaysLeft: dto.trialDaysLeft,
+    billingPhase: dto.billing.phase,
+    publishedAt: dto.billing.publishedAt,
+    daysLeft: dto.billing.daysLeft,
+    publishReadiness: dto.publishReadiness,
     documents: [
       { id: `${dto.id}-business`, label: 'business', status: 'ok' },
       { id: `${dto.id}-profile`, label: 'profile', status: profile.description ? 'ok' : 'missing' },

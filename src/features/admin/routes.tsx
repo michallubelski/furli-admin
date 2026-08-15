@@ -7,6 +7,7 @@ import { AdminCatalogPage } from './pages/CatalogPage';
 import { AdminCommunicationPage } from './pages/CommunicationPage';
 import { AdminDashboardPage } from './pages/DashboardPage';
 import { AdminIntegrationsPage } from './pages/IntegrationsPage';
+import { MorePage } from './pages/MorePage';
 import { AdminProvidersPage } from './pages/ProvidersPage';
 import { AdminQueuePage } from './pages/QueuePage';
 import { AdminReportsPage } from './pages/ReportsPage';
@@ -33,6 +34,10 @@ export function AdminRoutes({ accessToken, onLogout }: { accessToken: string; on
           <Route path="communication" element={<AdminCommunicationPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="admins" element={<AdminAdminsPage />} />
+          {/* v44 (mobile): "Więcej" screen the bottom tab bar's 4th tab opens on narrow screens -
+              desktop never links here (the full sidebar already covers everything), but the route
+              still resolves so a bookmarked/refreshed mobile URL doesn't 404. */}
+          <Route path="more" element={<MorePage onLogout={onLogout} />} />
           <Route path="*" element={<AdminDashboardPage />} />
         </Route>
       </Routes>

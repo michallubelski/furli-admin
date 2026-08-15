@@ -51,6 +51,7 @@ export function buildAdminPageMeta(t: Translate): Record<AdminRouteKey, PageMeta
     communication: { title: t('admin.routes.communication.title'), subtitle: t('admin.routes.communication.subtitle') },
     settings: { title: t('admin.routes.settings.title'), subtitle: t('admin.routes.settings.subtitle') },
     admins: { title: t('admin.routes.admins.title'), subtitle: t('admin.routes.admins.subtitle') },
+    more: { title: t('admin.routes.more.title'), subtitle: t('admin.routes.more.subtitle') },
   };
 }
 

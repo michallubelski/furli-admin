@@ -23,7 +23,7 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
   }, [onClose]);
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'oklch(0.2 0.02 60 / 0.56)', zIndex: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 16 }}>
+    <div onClick={onClose} className="furli-sheet-back" style={{ position: 'fixed', inset: 0, background: 'oklch(0.2 0.02 60 / 0.56)', zIndex: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 16 }}>
       <div onClick={(event) => event.stopPropagation()} style={{ width: '100%', maxWidth: 380, background: C.bgCard, borderRadius: 20, boxShadow: '0 24px 70px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
         <div style={{ padding: '18px 22px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: FONT_HEAD, fontSize: 18, fontWeight: 600, color: C.text }}>{title}</div>

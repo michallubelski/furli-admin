@@ -4,7 +4,7 @@ import { ChevronRight, Footprints, GraduationCap, PawPrint, Scissors, Search, St
 import { Card, SectionTitle, inputStyle } from '../../../shared/components/ui';
 import { C, FONT_HEAD, FONT_NUM } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
-import { adminStatusMeta, billingLabel, providerTypeLabel } from '../model';
+import { adminStatusMeta, billingPhaseMeta, providerTypeLabel } from '../model';
 import type { AdminProviderRecord } from '../model';
 
 export function AdminBadge({ label, color, background }: { label: string; color: string; background: string }) {
@@ -22,14 +22,8 @@ export function ProviderStatusBadge({ provider }: { provider: AdminProviderRecor
 
 export function BillingBadge({ provider }: { provider: AdminProviderRecord }) {
   const { t } = useI18n();
-  const label = billingLabel(t, provider.billingStatus, provider.billingPlan);
-  if (provider.billingStatus === 'active') {
-    return <AdminBadge label={label} color={C.green} background={C.greenLight} />;
-  }
-  if (provider.billingStatus === 'overdue') {
-    return <AdminBadge label={label} color={C.roseDark} background="oklch(0.95 0.04 15)" />;
-  }
-  return <AdminBadge label={label} color={C.tealDark} background={C.tealLight} />;
+  const meta = billingPhaseMeta(t, provider);
+  return <AdminBadge label={meta.label} color={meta.color} background={meta.bg} />;
 }
 
 export function KpiCard({
@@ -78,10 +72,15 @@ export function AdminToolbar({ children }: { children: ReactNode }) {
   return <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16 }}>{children}</div>;
 }
 
-export function TabButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+export function TabButton({ active, label, count, onClick }: { active: boolean; label: string; count?: number; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{ padding: '8px 13px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', border: `1px solid ${active ? C.primary : C.border}`, background: active ? C.primary : C.bgCard, color: active ? '#fff' : C.textMedium }}>
+    <button onClick={onClick} style={{ padding: '8px 13px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', border: `1px solid ${active ? C.primary : C.border}`, background: active ? C.primary : C.bgCard, color: active ? '#fff' : C.textMedium, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       {label}
+      {count !== undefined ? (
+        <span style={{ fontSize: 10.5, fontWeight: 800, borderRadius: 999, padding: '1px 7px', background: active ? 'oklch(1 0 0/.25)' : C.bgMuted, color: active ? '#fff' : C.textMuted, fontFamily: FONT_NUM }}>
+          {count}
+        </span>
+      ) : null}
     </button>
   );
 }

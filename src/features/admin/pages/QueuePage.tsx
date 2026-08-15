@@ -71,7 +71,9 @@ function buildItems(t: (key: string, values?: Record<string, string | number>) =
     });
   }
   for (const report of reports) {
-    if (report.status !== 'open') {
+    // "investigating" still needs a decision, same as "open" - only "resolved" drops out of the
+    // queue (mirrors ReportsPage's own "Otwarte" tab, which treats investigating the same way).
+    if (report.status === 'resolved') {
       continue;
     }
     items.push({

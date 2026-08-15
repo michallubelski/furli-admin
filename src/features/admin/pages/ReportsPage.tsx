@@ -14,7 +14,10 @@ export function AdminReportsPage() {
   const { t } = useI18n();
   const { reports, resolveReport } = useAdminState();
   const [tab, setTab] = useState<ReportTab>('open');
-  const shown = reports.filter((report) => tab === 'all' || report.status === tab);
+  // "investigating" counts as still-open for this tab (same as the row rendering below already
+  // treats it, via `isOpen`) - otherwise a report moved to "investigating" falls out of both this
+  // tab and the Queue's own open-filter, effectively disappearing from every active work surface.
+  const shown = reports.filter((report) => tab === 'all' || (tab === 'open' ? report.status !== 'resolved' : report.status === tab));
 
   const TABS: Array<{ id: ReportTab; label: string }> = [
     { id: 'open', label: t('admin.reports.tabOpen') },

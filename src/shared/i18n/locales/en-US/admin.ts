@@ -16,6 +16,7 @@ export const admin: TranslationNode = {
     communication: 'Communication',
     settings: 'Settings',
     admins: 'Admins',
+    more: 'More',
   },
   routes: {
     dashboard: { title: 'Dashboard', subtitle: 'Operational overview of the FURLI platform' },
@@ -31,6 +32,7 @@ export const admin: TranslationNode = {
     communication: { title: 'Communication', subtitle: 'Operational announcements and referral codes' },
     settings: { title: 'Platform settings', subtitle: 'Plans, flags, and system-wide settings' },
     admins: { title: 'Admins', subtitle: 'RBAC, audit log, and GDPR requests' },
+    more: { title: 'More', subtitle: 'The panel\'s other modules' },
   },
   layout: {
     badgeLabel: 'Admin',
@@ -42,7 +44,6 @@ export const admin: TranslationNode = {
       one: '{count} pending review',
       other: '{count} pending review',
     },
-    menuLabel: 'Menu',
   },
   status: {
     pending: 'Pending',
@@ -112,12 +113,33 @@ export const admin: TranslationNode = {
     notePlaceholder: 'A short note for the provider...',
   },
   providers: {
-    filters: {
-      all: 'All',
-      pending: 'Pending',
-      approved: 'Active',
+    // v44: facility lifecycle tabs (mockup furli-admin-v6.jsx:417) replace the old flat
+    // all/pending/active/suspended/rejected split - pending/changes_requested now live only in the
+    // Queue, this screen asks "what lifecycle stage is the facility at".
+    tabs: {
+      registered: 'Registered',
+      published: 'Published',
+      trial: 'In trial',
+      grace: 'In grace period',
       suspended: 'Suspended',
       rejected: 'Rejected',
+      expired: 'Expired',
+    },
+    subfilterLabel: 'Sub-filter:',
+    publishedSub: {
+      all: 'All',
+      trial: 'In trial · active demo',
+      paid: 'Past trial · paying',
+    },
+    expiredSub: {
+      all: 'All',
+      demo: 'After the demo period',
+      paid: 'On a paid plan',
+    },
+    completeness: {
+      missing: 'Missing: {list}',
+      complete: 'Profile complete — ready for review',
+      note: 'Note: {note}',
     },
     searchPlaceholder: 'Search by name or city...',
     emptyResults: 'No providers match these criteria.',
@@ -134,6 +156,7 @@ export const admin: TranslationNode = {
       suspendSuccess: 'Facility suspended - it disappeared from FURLI search',
       reactivateSuccess: 'Facility reactivated - it is back in search',
     },
+    devNote: 'Tabs = the facility lifecycle: Registered (after signup, before publication - the trial doesn\'t run yet, it starts at approval) → Published (visible in the customer app; sub-filter demo/paying) → In grace period (no subscription after trial/payment - hidden from the customer app immediately, panel still works) → Suspended / Rejected / Expired (after grace with no payment). "Expired" distinguishes after the demo period (never paid) from on a paid plan (subscription failed/canceled). Verifications (pending / changes requested) are handled by the Queue.',
   },
   subscriptions: {
     kpi: {
@@ -176,6 +199,31 @@ export const admin: TranslationNode = {
     planConnectedActive: 'Connected plan',
     overdue: 'Payment overdue',
     trial: 'Trial period',
+    phase: {
+      active: 'Subscription · {plan}',
+      onboarding: 'Trial starts at publication',
+      trial: 'Trial · {days} days',
+      grace: 'Grace period · {days} days',
+      expiredDemo: 'Expired · after demo period',
+      expiredPaid: 'Expired · failed payment',
+    },
+  },
+  publishReadiness: {
+    requirements: {
+      name: 'name',
+      description: 'description',
+      photos: 'photos',
+      specialties: 'specialties',
+      phone: 'phone',
+      email: 'email',
+      services: 'service price list',
+      staff: 'team',
+      card: 'payment method',
+    },
+    modalBanner: {
+      title: 'Profile incomplete — {pct}% ({done} of {total})',
+      description: 'Missing: {missing}. Approval is blocked — ask the facility to complete it.',
+    },
   },
   providerDocument: {
     business: 'Business details',

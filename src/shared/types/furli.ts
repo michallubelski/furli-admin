@@ -8,6 +8,11 @@ import type { CSSProperties, ReactNode, SVGProps } from 'react';
 export type ProviderType = 'veterinarian' | 'groomer' | 'trainer' | 'petsitter' | 'walker';
 export type VerificationStatus = 'pending' | 'changes_requested' | 'rejected' | 'approved';
 export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled';
+// Derived billing-lifecycle view (see backend's ProviderBilling#computePhase) - onboarding = TRIAL
+// status but never published; trial/grace are time-boxed windows after publishing; dormant = grace
+// expired with no subscription ever started (the mockup's "wygasła po okresie demo"); past_due/
+// canceled = a real subscription that failed/ended (the mockup's "wygasła na płatności").
+export type BillingPhase = 'onboarding' | 'trial' | 'grace' | 'dormant' | 'active' | 'past_due' | 'canceled';
 export type AuthRole = 'ADMIN';
 
 export type IconComponent = (props: SVGProps<SVGSVGElement> & { size?: number }) => JSX.Element;
@@ -64,6 +69,20 @@ export interface BillingInfo {
   status: BillingStatus;
   planId: string | null;
   paidUntil: number | null;
+  phase?: BillingPhase;
+  publishedAt?: number | null;
+  daysLeft?: number | null;
+}
+
+// Publication readiness gate (see backend's PublishReadinessService) - only ever populated for a
+// not-yet-published account (draft/pending/changes_requested); null otherwise, since it's
+// meaningless once a profile has already cleared the gate once.
+export interface PublishReadinessInfo {
+  ready: boolean;
+  pct: number;
+  done: number;
+  total: number;
+  missing: string[];
 }
 
 export interface RegistrationConsents {
@@ -124,6 +143,7 @@ export interface ProviderAccount {
   history?: AdminActivityLogEntry[];
   // Independent of verificationStatus - an approved provider can still be suspended.
   suspended?: boolean;
+  publishReadiness?: PublishReadinessInfo | null;
 }
 
 export type AdminRouteKey =
@@ -139,7 +159,8 @@ export type AdminRouteKey =
   | 'catalog'
   | 'communication'
   | 'settings'
-  | 'admins';
+  | 'admins'
+  | 'more';
 
 export interface TitleMeta {
   title: string;
