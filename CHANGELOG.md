@@ -39,3 +39,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - A report moved to `investigating` no longer disappears from both the Kolejka decision queue and
   the Zgłoszenia "Otwarte" tab - both now treat it the same as `open` (only `resolved` drops out).
+# 2026-08-19
+
+- Fixed the provider preview crashing the whole admin panel for incomplete or previously cached provider records. Provider completeness and optional list fields are now normalized and rendered defensively when absent.

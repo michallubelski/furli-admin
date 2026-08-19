@@ -34,7 +34,7 @@ function paidUntilLabel(t: Translate, value: number | null): string {
 }
 
 function workHoursLabel(t: Translate, account: ProviderAccount): string {
-  const enabled = account.workHours.filter((item) => item.on);
+  const enabled = (Array.isArray(account.workHours) ? account.workHours : []).filter((item) => item.on);
   if (!enabled.length) {
     return t('admin.providerModal.noFullWorkHours');
   }
@@ -47,7 +47,7 @@ function backendDocuments(t: Translate, account: ProviderAccount, provider: Admi
     : t('admin.generic.noData');
 
   return [
-    ...provider.documents.map((document) => ({
+    ...(Array.isArray(provider.documents) ? provider.documents : []).map((document) => ({
       id: document.id,
       label: document.label,
       value: document.status === 'ok' ? t('admin.documentStatus.complete') : document.status === 'expiring' ? t('admin.documentStatus.needsUpdate') : t('admin.documentStatus.missing'),
@@ -143,7 +143,10 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
 
   const displayProvider = mergedProvider ?? provider;
   const isQueue = displayProvider ? displayProvider.verificationStatus === 'pending' || displayProvider.verificationStatus === 'changes_requested' : false;
-  const providerHistory = useMemo(() => detail?.history ?? [], [detail]);
+  const providerHistory = useMemo(() => Array.isArray(detail?.history) ? detail.history : [], [detail]);
+  const missingRequirements = Array.isArray(displayProvider?.publishReadiness?.missing)
+    ? displayProvider.publishReadiness.missing
+    : [];
 
   const handleAction = async (action: ModalAction) => {
     if (!displayProvider) {
@@ -255,7 +258,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                     </div>
                     <div style={{ padding: '12px 14px', borderRadius: 14, background: C.bgMuted, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 11.5, color: C.textMuted, marginBottom: 6 }}>{t('admin.providerModal.specialties')}</div>
-                      <div style={{ fontSize: 13, color: C.text }}>{detail?.profile.specialties.length ? detail.profile.specialties.join(', ') : t('admin.providerModal.noSpecialties')}</div>
+                      <div style={{ fontSize: 13, color: C.text }}>{Array.isArray(detail?.profile.specialties) && detail.profile.specialties.length ? detail.profile.specialties.join(', ') : t('admin.providerModal.noSpecialties')}</div>
                     </div>
                     <div style={{ padding: '12px 14px', borderRadius: 14, background: C.bgMuted, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 11.5, color: C.textMuted, marginBottom: 6 }}>{t('admin.providerModal.profileDescription')}</div>
@@ -276,7 +279,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                       {t('admin.publishReadiness.modalBanner.title', { pct: displayProvider.publishReadiness.pct, done: displayProvider.publishReadiness.done, total: displayProvider.publishReadiness.total })}
                     </div>
                     <div style={{ fontSize: 11.5, color: C.textSecondary, lineHeight: 1.5, marginTop: 3 }}>
-                      {t('admin.publishReadiness.modalBanner.description', { missing: displayProvider.publishReadiness.missing.map((id) => publishRequirementLabel(t, id)).join(', ') })}
+                      {t('admin.publishReadiness.modalBanner.description', { missing: missingRequirements.map((id) => publishRequirementLabel(t, id)).join(', ') })}
                     </div>
                   </div>
                 ) : null}
@@ -325,13 +328,13 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                       </div>
                       <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.submittedAt', { date: detail?.createdAt || displayProvider.submittedAt })}</div>
                       <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.emptyProfile', { value: detail ? (detail.seedEmpty ? t('admin.generic.yes') : t('admin.generic.notAvailable')) : t('admin.generic.noData') })}</div>
-                      <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.slots', { count: detail?.slots.length ?? t('admin.generic.noData') })}</div>
-                      <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.availableDays', { days: detail ? (detail.days.length ? detail.days.join(', ') : t('admin.providerModal.noDays')) : t('admin.generic.noData') })}</div>
+                      <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.slots', { count: Array.isArray(detail?.slots) ? detail.slots.length : t('admin.generic.noData') })}</div>
+                      <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.6 }}>{t('admin.providerModal.availableDays', { days: detail ? (Array.isArray(detail.days) && detail.days.length ? detail.days.join(', ') : t('admin.providerModal.noDays')) : t('admin.generic.noData') })}</div>
                     </div>
                     <div style={{ padding: '14px 16px', borderRadius: 16, background: C.bgMuted, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 11.5, color: C.textMuted, marginBottom: 6 }}>{t('admin.providerModal.servicesActivity')}</div>
                       <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>
-                        {detail?.profile.services.length ? detail.profile.services.map((service) => service.name).join(', ') : t('admin.providerModal.rating', { rating: displayProvider.rating > 0 ? displayProvider.rating.toFixed(1) : 0, count: displayProvider.rating > 0 ? displayProvider.reviewsCount : t('admin.providers.noReviews') })}
+                        {Array.isArray(detail?.profile.services) && detail.profile.services.length ? detail.profile.services.map((service) => service.name).join(', ') : t('admin.providerModal.rating', { rating: displayProvider.rating > 0 ? displayProvider.rating.toFixed(1) : 0, count: displayProvider.rating > 0 ? displayProvider.reviewsCount : t('admin.providers.noReviews') })}
                       </div>
                     </div>
                     {providerHistory.length > 0 ? (

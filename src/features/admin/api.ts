@@ -81,11 +81,13 @@ export function mapAdminProviderDto(dto: AdminProviderDto, current?: AdminProvid
     billingPhase: dto.billing.phase,
     publishedAt: dto.billing.publishedAt,
     daysLeft: dto.billing.daysLeft,
-    publishReadiness: dto.publishReadiness,
+    publishReadiness: dto.publishReadiness
+      ? { ...dto.publishReadiness, missing: Array.isArray(dto.publishReadiness.missing) ? dto.publishReadiness.missing : [] }
+      : null,
     documents: [
       { id: `${dto.id}-business`, label: 'business', status: 'ok' },
       { id: `${dto.id}-profile`, label: 'profile', status: profile.description ? 'ok' : 'missing' },
-      { id: `${dto.id}-services`, label: 'services', status: profile.services.length ? 'ok' : 'missing' },
+      { id: `${dto.id}-services`, label: 'services', status: Array.isArray(profile.services) && profile.services.length ? 'ok' : 'missing' },
     ],
     notes: [],
   };
