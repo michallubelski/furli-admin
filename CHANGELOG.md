@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Provider records are no longer seeded, restored, or cached in `localStorage`; the admin provider
+  list and preview now use the backend API as their only source of truth.
+
 ### Added
 - Initial extraction of the admin panel from `furli-fronted` into its own standalone repository.
 - Flattened admin routing (no `/admin/**` prefix - this app mounts the same route tree at the

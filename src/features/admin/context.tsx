@@ -46,17 +46,22 @@ interface AdminContextValue extends AdminSeedData {
 const AdminContext = createContext<AdminContextValue | null>(null);
 
 function loadAdminState(): AdminSeedData {
+  const seed = createAdminSeedData();
   try {
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (!raw) {
-      return createAdminSeedData();
+      return { ...seed, providers: [] };
     }
     // Merge over a fresh seed rather than trusting the stored blob's shape outright - a session
     // saved before a new slice (e.g. catalogOverlay) was added would otherwise come back missing
     // it entirely and crash the first screen that reads it.
-    return { ...createAdminSeedData(), ...(JSON.parse(raw) as Partial<AdminSeedData>) };
+    const persisted = JSON.parse(raw) as Partial<AdminSeedData>;
+    // Providers are authoritative backend data. Never hydrate the list from the old demo seed or
+    // a cached API response: stale records can have a different shape and must not briefly appear
+    // before the current API request finishes.
+    return { ...seed, ...persisted, providers: [] };
   } catch {
-    return createAdminSeedData();
+    return { ...seed, providers: [] };
   }
 }
 
@@ -98,7 +103,10 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Keep the still-local mock/admin UI slices, but deliberately omit providers. The backend is
+      // their sole source of truth and refreshProviders() repopulates them for every app session.
+      const { providers: _providers, ...persistedState } = state;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
     } catch {
       // no-op
     }
