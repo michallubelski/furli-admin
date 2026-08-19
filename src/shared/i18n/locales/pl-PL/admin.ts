@@ -48,6 +48,7 @@ export const admin: TranslationNode = {
     },
   },
   status: {
+    draft: 'Wersja robocza',
     pending: 'Oczekuje',
     changesRequested: 'Do uzupełnienia',
     approved: 'Zatwierdzona',

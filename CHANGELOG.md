@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Provider records are no longer seeded, restored, or cached in `localStorage`; the admin provider
   list and preview now use the backend API as their only source of truth.
+- Added the backend `draft` verification status to admin badges and a safe fallback for unexpected
+  statuses, preventing provider preview from crashing before a facility is submitted for review.
 
 ### Added
 - Initial extraction of the admin panel from `furli-fronted` into its own standalone repository.

@@ -313,6 +313,7 @@ export const adminActionButtonStyle = {
 } as const;
 
 const ADMIN_STATUS_STYLE: Record<VerificationStatus, { key: string; color: string; bg: string; Icon: IconComponent }> = {
+  draft: { key: 'admin.status.draft', color: C.textMuted, bg: C.bgMuted, Icon: FileText },
   pending: { key: 'admin.status.pending', color: C.amber, bg: C.primaryLight, Icon: Clock },
   changes_requested: { key: 'admin.status.changesRequested', color: C.tealDark, bg: C.tealLight, Icon: RefreshCw },
   approved: { key: 'admin.status.approved', color: C.green, bg: C.greenLight, Icon: Check },
@@ -321,6 +322,9 @@ const ADMIN_STATUS_STYLE: Record<VerificationStatus, { key: string; color: strin
 
 export function adminStatusMeta(t: Translate, status: VerificationStatus): { label: string; color: string; bg: string; Icon: IconComponent } {
   const style = ADMIN_STATUS_STYLE[status];
+  if (!style) {
+    return { label: String(status), color: C.textMuted, bg: C.bgMuted, Icon: FileText };
+  }
   return { label: t(style.key), color: style.color, bg: style.bg, Icon: style.Icon };
 }
 

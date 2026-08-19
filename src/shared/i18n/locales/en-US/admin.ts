@@ -46,6 +46,7 @@ export const admin: TranslationNode = {
     },
   },
   status: {
+    draft: 'Draft',
     pending: 'Pending',
     changesRequested: 'Changes requested',
     approved: 'Approved',

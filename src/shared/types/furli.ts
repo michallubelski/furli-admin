@@ -6,7 +6,7 @@ import type { CSSProperties, ReactNode, SVGProps } from 'react';
 // furli-admin has any provider-panel functionality itself).
 
 export type ProviderType = 'veterinarian' | 'groomer' | 'trainer' | 'petsitter' | 'walker';
-export type VerificationStatus = 'pending' | 'changes_requested' | 'rejected' | 'approved';
+export type VerificationStatus = 'draft' | 'pending' | 'changes_requested' | 'rejected' | 'approved';
 export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled';
 // Derived billing-lifecycle view (see backend's ProviderBilling#computePhase) - onboarding = TRIAL
 // status but never published; trial/grace are time-boxed windows after publishing; dormant = grace
