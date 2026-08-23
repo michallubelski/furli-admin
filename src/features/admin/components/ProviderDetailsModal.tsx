@@ -232,7 +232,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                       { label: t('admin.providerModal.fields.contactPerson'), value: detail?.contactName || displayProvider.contactName, Icon: Store },
                       { label: t('admin.providerModal.fields.phone'), value: detail?.phone || displayProvider.phone, Icon: Phone },
                       { label: t('admin.providerModal.fields.email'), value: detail?.email || displayProvider.email, Icon: Mail },
-                      { label: t('admin.providerModal.fields.address'), value: detail ? `${detail.profile.street} ${detail.profile.houseNumber}, ${detail.profile.postalCode} ${detail.profile.city}` : `${displayProvider.street}, ${displayProvider.postalCode} ${displayProvider.city}`, Icon: MapPin },
+                      { label: t('admin.providerModal.fields.address'), value: detail ? `${[detail.profile.street, detail.profile.houseNumber].filter(Boolean).join(' ')}, ${detail.profile.postalCode} ${detail.profile.city}` : `${displayProvider.street}, ${displayProvider.postalCode} ${displayProvider.city}`, Icon: MapPin },
                       { label: t('admin.providerModal.fields.providerType'), value: providerTypeLabel(t, displayProvider.typeLabel), Icon: Store },
                       { label: t('admin.providerModal.fields.serviceMode'), value: detail ? serviceModeLabel(t, detail.profile) : providerTypeLabel(t, displayProvider.typeLabel), Icon: Store },
                     ].map((item) => (
