@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { AdminActivityLogEntry } from '../../shared/types/furli';
 import { nowLabel } from '../../shared/utils/furli';
 import { createAdminSeedData, type AdminSeedData } from './mockData';
-import { getAdminActivity, getAdminProviders, mapAdminProviderDto } from './api';
+import { getAdminActivity, getAdminPendingProviderCount, getAdminProviders, mapAdminProviderDto } from './api';
 import type {
   AdminFeatureFlag,
   AdminGdprRequest,
@@ -131,26 +131,15 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         providers: mappedProviders,
       };
     });
+    setRemotePendingCount(remoteProviders.filter(
+      (provider) => provider.verificationStatus === 'pending' || provider.verificationStatus === 'changes_requested',
+    ).length);
   }, [accessToken]);
 
   const refreshPendingVerificationCount = useCallback(async () => {
     try {
-      // Both "pending" and "changes_requested" accounts are awaiting an admin decision (per the
-      // mockup) — the backend only filters on a single status value, so fetch the full list and
-      // filter client-side rather than undercounting "changes_requested" accounts.
-      const allProviders = await getAdminProviders(accessToken);
-      const pendingProviders = allProviders.filter((provider) => provider.verificationStatus === 'pending' || provider.verificationStatus === 'changes_requested');
-      setRemotePendingCount(pendingProviders.length);
-      setState((current) => {
-        const mappedProviders = pendingProviders.map((provider) => mapAdminProviderDto(provider, current.providers.find((item) => item.id === provider.id)));
-        return {
-          ...current,
-          providers: [
-            ...mappedProviders,
-            ...current.providers.filter((provider) => !mappedProviders.some((item) => item.id === provider.id)),
-          ],
-        };
-      });
+      // Count-only endpoint avoids downloading every provider again after an admin action.
+      setRemotePendingCount(await getAdminPendingProviderCount(accessToken));
     } catch {
       setRemotePendingCount(null);
     }
@@ -168,10 +157,6 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
   useEffect(() => {
     void refreshProviders().catch(() => undefined);
   }, [refreshProviders]);
-
-  useEffect(() => {
-    void refreshPendingVerificationCount();
-  }, [refreshPendingVerificationCount]);
 
   useEffect(() => {
     void refreshActivity();

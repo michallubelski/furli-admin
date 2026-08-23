@@ -119,6 +119,19 @@ export async function getAdminProviders(accessToken: string, status?: AdminProvi
   }
 }
 
+export async function getAdminPendingProviderCount(accessToken: string): Promise<number> {
+  try {
+    const data = await apiRequest<number>('/api/admin/providers/pending-count', {
+      method: 'GET',
+      token: accessToken,
+      fallbackMessage: 'Nie udało się pobrać liczby placówek oczekujących.',
+    });
+    return typeof data === 'number' ? data : 0;
+  } catch (error) {
+    throw asAdminError(error, 'Nie udało się pobrać liczby placówek oczekujących.');
+  }
+}
+
 export async function getAdminProvider(accessToken: string, providerId: string): Promise<AdminProviderDto> {
   try {
     const data = await apiRequest<AdminProviderDto>(`/api/admin/providers/${providerId}`, {
