@@ -152,6 +152,7 @@ export function AdminQueuePage() {
           {shown.map((item) => {
             const kindStyle = KIND_STYLE[item.kind];
             const provider = item.kind === 'verification' ? providers.find((entry) => entry.id === item.refId) : undefined;
+            const approvalBlocked = provider?.publishReadiness?.ready === false;
             return (
               <Card key={item.id} style={{ padding: 18, borderLeft: `3px solid ${kindStyle.color}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
@@ -172,7 +173,7 @@ export function AdminQueuePage() {
                 <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                   {item.kind === 'verification' ? (
                     <>
-                      <button disabled={approvingId === item.id} onClick={() => void handleApprove(item)} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: approvingId === item.id ? 0.65 : 1 }}>
+                      <button title={approvalBlocked ? t('admin.verification.approveBlocked') : undefined} disabled={approvingId === item.id || approvalBlocked} onClick={() => void handleApprove(item)} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: approvalBlocked ? 'not-allowed' : 'pointer', opacity: approvingId === item.id || approvalBlocked ? 0.55 : 1 }}>
                         <Check size={14} /> {t('common.actions.approve')}
                       </button>
                       <AdminLinkButton to={`/providers?providerId=${item.refId}`}>{t('admin.queue.detailsAndDecision')}</AdminLinkButton>

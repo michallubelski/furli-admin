@@ -112,6 +112,8 @@ export const admin: TranslationNode = {
     rejectReasonLabel: 'Reason for rejection',
     changesNeededLabel: "What's missing? (goes back to the provider)",
     notePlaceholder: 'A short note for the provider...',
+    noteHelp: 'The provider will see this note. Describe exactly what needs fixing; the decision cannot be sent without a reason.',
+    approveBlocked: 'Ask the provider to complete the missing information first.',
   },
   providers: {
     // v44: facility lifecycle tabs (mockup furli-admin-v6.jsx:417) replace the old flat

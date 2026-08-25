@@ -114,6 +114,8 @@ export const admin: TranslationNode = {
     rejectReasonLabel: 'Powód odrzucenia',
     changesNeededLabel: 'Czego brakuje? (wróci do placówki)',
     notePlaceholder: 'Krótka notatka dla placówki...',
+    noteHelp: 'Notatka trafi do placówki. Opisz konkretnie, co należy poprawić; bez uzasadnienia decyzja nie zostanie wysłana.',
+    approveBlocked: 'Najpierw poproś placówkę o uzupełnienie brakujących danych.',
   },
   providers: {
     // v44: cykl życia placówki (mockup furli-admin-v6.jsx:417) zastępuje płaski podział

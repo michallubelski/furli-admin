@@ -156,7 +156,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
     setError('');
     setSuccessMessage('');
     try {
-      const trimmedNote = note.trim() || undefined;
+      const trimmedNote = note.trim();
       const response = action === 'approve'
         ? await approveProvider(accessToken, providerId)
         : action === 'reject'
@@ -362,9 +362,10 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                 <div>
                   <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8, color: C.text }}>{mode === 'reject' ? t('admin.verification.rejectReasonLabel') : t('admin.providerModal.changesNeededLabel')}</div>
                   <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={2} placeholder={t('admin.verification.notePlaceholder')} style={{ ...inputStyle, resize: 'vertical', background: C.bgCard }} />
+                  <p style={{ fontSize: 11.5, color: C.textMuted, margin: '6px 0 0', lineHeight: 1.5 }}>{t('admin.verification.noteHelp')}</p>
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 10 }}>
                     <button onClick={() => { setMode(null); setNote(''); }} style={adminActionButtonStyle.subtle}>{t('common.actions.cancel')}</button>
-                    <button disabled={pendingAction === mode} onClick={() => void handleAction(mode)} style={{ ...adminActionButtonStyle.success, background: mode === 'reject' ? C.roseDark : C.tealDark, opacity: pendingAction === mode ? 0.65 : 1 }}>
+                    <button disabled={!note.trim() || pendingAction === mode} onClick={() => void handleAction(mode)} style={{ ...adminActionButtonStyle.success, background: note.trim() ? (mode === 'reject' ? C.roseDark : C.tealDark) : C.bgMuted, color: note.trim() ? '#fff' : C.textMuted, cursor: note.trim() ? 'pointer' : 'not-allowed', opacity: pendingAction === mode ? 0.65 : 1 }}>
                       {mode === 'reject' ? t('admin.verification.rejectSubmit') : t('admin.verification.sendRequest')}
                     </button>
                   </div>
@@ -373,7 +374,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                   <button onClick={() => setMode('request_changes')} style={adminActionButtonStyle.warning}>{t('admin.actions.requestChanges')}</button>
                   <button onClick={() => setMode('reject')} style={adminActionButtonStyle.danger}>{t('common.actions.decline')}</button>
-                  <button disabled={pendingAction === 'approve'} onClick={() => void handleAction('approve')} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: '0 6px 16px oklch(0.62 0.13 150 / 0.35)', opacity: pendingAction === 'approve' ? 0.65 : 1 }}>
+                  <button title={displayProvider.publishReadiness && !displayProvider.publishReadiness.ready ? t('admin.verification.approveBlocked') : undefined} disabled={pendingAction === 'approve' || displayProvider.publishReadiness?.ready === false} onClick={() => void handleAction('approve')} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 7, boxShadow: displayProvider.publishReadiness?.ready === false ? 'none' : '0 6px 16px oklch(0.62 0.13 150 / 0.35)', cursor: displayProvider.publishReadiness?.ready === false ? 'not-allowed' : 'pointer', opacity: pendingAction === 'approve' || displayProvider.publishReadiness?.ready === false ? 0.55 : 1 }}>
                     <Check size={16} />
                     {t('admin.providerModal.approveProvider')}
                   </button>

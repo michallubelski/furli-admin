@@ -175,12 +175,12 @@ export function approveProvider(accessToken: string, providerId: string): Promis
   return postProviderDecision(accessToken, providerId, 'approve', 'Nie udało się zatwierdzić placówki.');
 }
 
-export function rejectProvider(accessToken: string, providerId: string, note?: string): Promise<AdminProviderDto> {
-  return postProviderDecision(accessToken, providerId, 'reject', 'Nie udało się odrzucić placówki.', note ? { note } : undefined);
+export function rejectProvider(accessToken: string, providerId: string, note: string): Promise<AdminProviderDto> {
+  return postProviderDecision(accessToken, providerId, 'reject', 'Nie udało się odrzucić placówki.', { note });
 }
 
-export function requestProviderChanges(accessToken: string, providerId: string, note?: string): Promise<AdminProviderDto> {
-  return postProviderDecision(accessToken, providerId, 'request-changes', 'Nie udało się wysłać prośby o uzupełnienie.', note ? { note } : undefined);
+export function requestProviderChanges(accessToken: string, providerId: string, note: string): Promise<AdminProviderDto> {
+  return postProviderDecision(accessToken, providerId, 'request-changes', 'Nie udało się wysłać prośby o uzupełnienie.', { note });
 }
 
 export function suspendProvider(accessToken: string, providerId: string): Promise<AdminProviderDto> {

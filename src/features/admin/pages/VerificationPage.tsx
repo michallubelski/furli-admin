@@ -105,10 +105,10 @@ export function AdminVerificationPage() {
     setSuccessMessage('');
     try {
       if (mode === 'reject') {
-        await rejectProvider(accessToken, provider.id, note.trim() || undefined);
+        await rejectProvider(accessToken, provider.id, note.trim());
         setSuccessMessage(t('admin.verification.rejectedMessage', { name: provider.name }));
       } else {
-        await requestProviderChanges(accessToken, provider.id, note.trim() || undefined);
+        await requestProviderChanges(accessToken, provider.id, note.trim());
         setSuccessMessage(t('admin.verification.requestedChangesMessage', { name: provider.name }));
       }
       setNoteMode(null);
@@ -172,6 +172,7 @@ export function AdminVerificationPage() {
             const rejecting = actionState?.providerId === provider.id && actionState.action === 'reject';
             const requestingChanges = actionState?.providerId === provider.id && actionState.action === 'request_changes';
             const noteOpen = noteMode?.providerId === provider.id ? noteMode.mode : null;
+            const approvalBlocked = provider.publishReadiness?.ready === false;
             return (
               <Card key={provider.id} style={{ padding: 18 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -195,7 +196,7 @@ export function AdminVerificationPage() {
                     </AdminLinkButton>
                     <button onClick={() => setNoteMode(noteOpen === 'request_changes' ? null : { providerId: provider.id, mode: 'request_changes' })} style={adminActionButtonStyle.warning}>{t('admin.actions.requestChanges')}</button>
                     <button onClick={() => setNoteMode(noteOpen === 'reject' ? null : { providerId: provider.id, mode: 'reject' })} style={adminActionButtonStyle.danger}>{t('common.actions.decline')}</button>
-                    <button disabled={approving} onClick={() => void handleApprove(provider)} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: approving ? 0.65 : 1 }}>
+                    <button title={approvalBlocked ? t('admin.verification.approveBlocked') : undefined} disabled={approving || approvalBlocked} onClick={() => void handleApprove(provider)} style={{ ...adminActionButtonStyle.success, display: 'inline-flex', alignItems: 'center', gap: 6, cursor: approvalBlocked ? 'not-allowed' : 'pointer', opacity: approving || approvalBlocked ? 0.55 : 1 }}>
                       <Check size={15} />
                       {approving ? t('admin.verification.approving') : t('common.actions.approve')}
                     </button>
@@ -213,12 +214,13 @@ export function AdminVerificationPage() {
                       placeholder={t('admin.verification.notePlaceholder')}
                       style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 10, background: C.bgCard, padding: 11, resize: 'vertical', font: 'inherit', fontSize: 13 }}
                     />
+                    <p style={{ fontSize: 11.5, color: C.textMuted, margin: '6px 0 0', lineHeight: 1.5 }}>{t('admin.verification.noteHelp')}</p>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
                       <button onClick={() => { setNoteMode(null); setNote(''); }} style={adminActionButtonStyle.subtle}>{t('common.actions.cancel')}</button>
                       <button
-                        disabled={noteOpen === 'reject' ? rejecting : requestingChanges}
+                        disabled={!note.trim() || (noteOpen === 'reject' ? rejecting : requestingChanges)}
                         onClick={() => void handleNoteAction(provider, noteOpen)}
-                        style={{ ...(noteOpen === 'reject' ? adminActionButtonStyle.danger : adminActionButtonStyle.warning), opacity: (noteOpen === 'reject' ? rejecting : requestingChanges) ? 0.65 : 1 }}
+                        style={{ ...(noteOpen === 'reject' ? adminActionButtonStyle.danger : adminActionButtonStyle.warning), cursor: note.trim() ? 'pointer' : 'not-allowed', opacity: !note.trim() || (noteOpen === 'reject' ? rejecting : requestingChanges) ? 0.55 : 1 }}
                       >
                         {noteOpen === 'reject' ? (rejecting ? t('admin.verification.rejecting') : t('admin.verification.rejectSubmit')) : (requestingChanges ? t('admin.verification.sending') : t('admin.verification.sendRequest'))}
                       </button>
