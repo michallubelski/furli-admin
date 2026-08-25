@@ -35,6 +35,8 @@ export const admin: TranslationNode = {
     more: { title: 'Więcej', subtitle: 'Pozostałe moduły panelu' },
   },
   layout: {
+    notifications: 'Powiadomienia',
+    noNotifications: 'Brak nowych powiadomień.',
     badgeLabel: 'Admin',
     operatorLabel: 'operator FURLI',
     adminRoleLabel: 'Administrator',
@@ -393,6 +395,14 @@ export const admin: TranslationNode = {
     devNote: 'Rejestr aplikacji API placówek: OAuth2, monitoring kondycji webhooków (ponowienia, błędy), limity i odwoływanie kluczy. Spięte z sekcją „Integracja API" w panelu B2B.',
   },
   stats: {
+    providers: 'Placówki łącznie',
+    publishedProviders: 'Placówki opublikowane',
+    customers: 'Klienci łącznie',
+    completedBookings: 'Wizyty zrealizowane',
+    canceledBookings: 'Wizyty anulowane',
+    reviews: 'Opinie łącznie',
+    noData: 'Brak danych w wybranym okresie.',
+    realDataNote: 'Wszystkie wartości pochodzą bezpośrednio z danych operacyjnych backendu.',
     rangeLabels: { '7': '7 dni', '30': '30 dni', '90': '90 dni', '365': '12 miesięcy', custom: 'Zakres własny' },
     allTypes: 'Wszystkie typy placówek',
     allCities: 'Wszystkie miasta',

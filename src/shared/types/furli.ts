@@ -114,6 +114,9 @@ export interface AdminAccount {
   id: string;
   email: string;
   role: 'ADMIN';
+  name?: string;
+  adminRole?: string;
+  lastActiveAt?: string | null;
 }
 
 export interface ProviderAccount {

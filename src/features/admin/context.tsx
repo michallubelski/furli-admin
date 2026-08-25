@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { AdminActivityLogEntry } from '../../shared/types/furli';
 import { nowLabel } from '../../shared/utils/furli';
 import { createAdminSeedData, type AdminSeedData } from './mockData';
-import { getAdminActivity, getAdminPendingProviderCount, getAdminProviders, mapAdminProviderDto } from './api';
+import { completeAdminGdprRequest, createAdminBroadcast, createAdminCatalogEntry, createAdminReferralCode, deleteAdminCatalogEntry, getAdminActivity, getAdminAudit, getAdminBroadcasts, getAdminCatalog, getAdminGdprRequests, getAdminPendingProviderCount, getAdminProviders, getAdminReferralCodes, getAdminReports, getAdminReviews, getAdminUsers, mapAdminProviderDto, moderateAdminReview, setAdminCatalogVisibility, updateAdminCatalogEntry, updateAdminReport } from './api';
 import type {
   AdminFeatureFlag,
   AdminGdprRequest,
@@ -12,7 +12,8 @@ import type {
   AdminReferralCode,
   AdminReviewRecord,
 } from './model';
-import { serviceKeyFromName } from '../../shared/constants/serviceCatalog';
+import { SERVICE_CATALOG_BASE, serviceKeyFromName } from '../../shared/constants/serviceCatalog';
+import { SPECIALTIES_BY_TYPE } from '../../shared/constants/specialties';
 import type { CatalogKind } from './catalog';
 import type { ProviderType } from '../../shared/types/furli';
 
@@ -30,17 +31,17 @@ interface AdminContextValue extends AdminSeedData {
   refreshProviders: () => Promise<void>;
   refreshPendingVerificationCount: () => Promise<void>;
   logAudit: (action: string, target: string) => void;
-  moderateReview: (reviewId: string, nextStatus: AdminReviewRecord['status']) => void;
-  resolveReport: (reportId: string) => void;
+  moderateReview: (reviewId: string, nextStatus: AdminReviewRecord['status']) => Promise<void>;
+  resolveReport: (reportId: string) => Promise<void>;
   setIntegrationStatus: (integrationId: string, status: AdminIntegrationRecord['status']) => void;
-  addBroadcast: (title: string) => void;
-  addReferralCode: () => void;
+  addBroadcast: (title: string, audience?: string, channel?: string) => Promise<void>;
+  addReferralCode: () => Promise<void>;
   toggleFeatureFlag: (flagId: string) => void;
-  resolveGdprRequest: (requestId: string) => void;
-  addCatalogEntry: (kind: CatalogKind, type: ProviderType, label: string, sub: string) => void;
-  updateCatalogEntry: (kind: CatalogKind, id: string, label: string, sub: string) => void;
-  setCatalogEntryHidden: (kind: CatalogKind, id: string, hidden: boolean) => void;
-  deleteCatalogEntry: (kind: CatalogKind, id: string) => void;
+  resolveGdprRequest: (requestId: string) => Promise<void>;
+  addCatalogEntry: (kind: CatalogKind, type: ProviderType, label: string, sub: string) => Promise<void>;
+  updateCatalogEntry: (kind: CatalogKind, type: ProviderType, id: string, label: string, sub: string) => Promise<void>;
+  setCatalogEntryHidden: (kind: CatalogKind, type: ProviderType, id: string, hidden: boolean, label: string, sub: string) => Promise<void>;
+  deleteCatalogEntry: (kind: CatalogKind, type: ProviderType, id: string) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextValue | null>(null);
@@ -59,7 +60,7 @@ function loadAdminState(): AdminSeedData {
     // Providers are authoritative backend data. Never hydrate the list from the old demo seed or
     // a cached API response: stale records can have a different shape and must not briefly appear
     // before the current API request finishes.
-    return { ...seed, ...persisted, providers: [] };
+    return { ...seed, ...persisted, providers: [], reviews: [], reports: [], broadcasts: [], referralCodes: [], gdprRequests: [], admins: [], audit: [], catalogOverlay: seed.catalogOverlay };
   } catch {
     return { ...seed, providers: [] };
   }
@@ -105,7 +106,18 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     try {
       // Keep the still-local mock/admin UI slices, but deliberately omit providers. The backend is
       // their sole source of truth and refreshProviders() repopulates them for every app session.
-      const { providers: _providers, ...persistedState } = state;
+      const {
+        providers: _providers,
+        reviews: _reviews,
+        reports: _reports,
+        broadcasts: _broadcasts,
+        referralCodes: _referralCodes,
+        gdprRequests: _gdprRequests,
+        admins: _admins,
+        catalogOverlay: _catalogOverlay,
+        audit: _audit,
+        ...persistedState
+      } = state;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
     } catch {
       // no-op
@@ -162,6 +174,35 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     void refreshActivity();
   }, [refreshActivity]);
 
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      getAdminReviews(accessToken),
+      getAdminReports(accessToken),
+      getAdminBroadcasts(accessToken),
+      getAdminReferralCodes(accessToken),
+      getAdminGdprRequests(accessToken),
+      getAdminCatalog(accessToken),
+      getAdminUsers(accessToken),
+      getAdminAudit(accessToken),
+    ]).then(([reviews, reports, broadcasts, referralCodes, gdprRequests, catalog, adminUsers, audit]) => {
+      if (!cancelled) {
+        const catalogOverlay = { services: { added: [], edited: {}, hidden: [] }, specialties: { added: [], edited: {}, hidden: [] } } as AdminSeedData['catalogOverlay'];
+        catalog.forEach((entry) => {
+          const isBase = entry.kind === 'services'
+            ? SERVICE_CATALOG_BASE[entry.providerType].some((item) => item.key === entry.key)
+            : SPECIALTIES_BY_TYPE[entry.providerType].some((item) => item.id === entry.key);
+          if (isBase) catalogOverlay[entry.kind].edited[entry.key] = { label: entry.label, sub: entry.description || '' };
+          else catalogOverlay[entry.kind].added.push({ id: entry.key, type: entry.providerType, label: entry.label, sub: entry.description || '' });
+          if (entry.hidden) catalogOverlay[entry.kind].hidden.push(entry.key);
+        });
+        const admins = adminUsers.map((admin) => ({ id: admin.id, name: admin.name || admin.email.split('@')[0], email: admin.email, roleLabel: admin.adminRole || admin.role, lastSeen: admin.lastActiveAt ? new Date(admin.lastActiveAt).toLocaleString('pl-PL') : '—', presenceLabel: admin.lastActiveAt && Date.now() - new Date(admin.lastActiveAt).getTime() < 5 * 60_000 ? 'online' : undefined }));
+        setState((current) => ({ ...current, reviews, reports, broadcasts, referralCodes, gdprRequests, catalogOverlay, admins, audit }));
+      }
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [accessToken]);
+
   const logAudit = useCallback((action: string, target: string) => {
     setState((current) => ({
       ...current,
@@ -182,7 +223,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     refreshProviders,
     refreshPendingVerificationCount,
     logAudit,
-    moderateReview: (reviewId, nextStatus) => {
+    moderateReview: async (reviewId, nextStatus) => {
+      await moderateAdminReview(accessToken, reviewId, nextStatus);
       setState((current) => {
         const review = current.reviews.find((item) => item.id === reviewId);
         if (!review) {
@@ -195,7 +237,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    resolveReport: (reportId) => {
+    resolveReport: async (reportId) => {
+      await updateAdminReport(accessToken, reportId, 'resolved');
       setState((current) => {
         const report = current.reports.find((item) => item.id === reportId);
         if (!report) {
@@ -221,30 +264,26 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    addBroadcast: (title) => {
+    addBroadcast: async (title, audience = 'all', channel = 'email') => {
       const normalizedTitle = title.trim();
       if (!normalizedTitle) {
         return;
       }
+      const created = await createAdminBroadcast(accessToken, normalizedTitle, audience, channel);
       setState((current) => ({
         ...current,
         broadcasts: [
-          { id: `broadcast_${Date.now().toString(36)}`, title: normalizedTitle, audience: 'Wszystkie placówki', channel: 'E-mail + panel', sentAt: nowLabel() },
+          created,
           ...current.broadcasts,
         ],
         audit: pushAudit('Wysłano ogłoszenie', normalizedTitle, current.audit),
       }));
     },
-    addReferralCode: () => {
+    addReferralCode: async () => {
+      const generatedCode = `FURLI${crypto.getRandomValues(new Uint32Array(1))[0].toString().slice(-6)}`;
+      const created = await createAdminReferralCode(accessToken, generatedCode, '-15% na pierwszy miesiąc', 200);
       setState((current) => {
-        const nextCode: AdminReferralCode = {
-          id: `code_${Date.now().toString(36)}`,
-          code: `FURLI${Math.floor(Math.random() * 90 + 10)}`,
-          discountLabel: '-15% na pierwszy miesiąc',
-          uses: 0,
-          maxUses: 200,
-          active: true,
-        };
+        const nextCode: AdminReferralCode = created;
         return {
           ...current,
           referralCodes: [nextCode, ...current.referralCodes],
@@ -265,7 +304,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    resolveGdprRequest: (requestId) => {
+    resolveGdprRequest: async (requestId) => {
+      await completeAdminGdprRequest(accessToken, requestId);
       setState((current) => {
         const request = current.gdprRequests.find((item) => item.id === requestId);
         if (!request) {
@@ -282,7 +322,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     // free text - see shared/constants/serviceCatalog.ts. The seed lists are the grain; everything
     // added/edited/hidden from this screen lives as an overlay on top, same split the mockup uses,
     // so re-seeding the base list later never wipes what an operator added.
-    addCatalogEntry: (kind, type, label, sub) => {
+    addCatalogEntry: async (kind, type, label, sub) => {
       const trimmedLabel = label.trim();
       if (!trimmedLabel) {
         return;
@@ -291,6 +331,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
       if (!id) {
         return;
       }
+      await createAdminCatalogEntry(accessToken, kind, type, id, trimmedLabel, sub.trim());
       setState((current) => {
         const overlay = current.catalogOverlay[kind];
         if (overlay.added.some((entry) => entry.id === id && entry.type === type)) {
@@ -306,7 +347,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    updateCatalogEntry: (kind, id, label, sub) => {
+    updateCatalogEntry: async (kind, type, id, label, sub) => {
+      await updateAdminCatalogEntry(accessToken, kind, type, id, label, sub);
       setState((current) => {
         const overlay = current.catalogOverlay[kind];
         return {
@@ -319,7 +361,9 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    setCatalogEntryHidden: (kind, id, hidden) => {
+    setCatalogEntryHidden: async (kind, type, id, hidden, label, sub) => {
+      await updateAdminCatalogEntry(accessToken, kind, type, id, label, sub);
+      await setAdminCatalogVisibility(accessToken, kind, type, id, hidden);
       setState((current) => {
         const overlay = current.catalogOverlay[kind];
         const nextHidden = hidden ? [...overlay.hidden, id] : overlay.hidden.filter((entryId) => entryId !== id);
@@ -330,7 +374,8 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-    deleteCatalogEntry: (kind, id) => {
+    deleteCatalogEntry: async (kind, type, id) => {
+      await deleteAdminCatalogEntry(accessToken, kind, type, id);
       setState((current) => {
         const overlay = current.catalogOverlay[kind];
         return {

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, Clock, LayoutDashboard, LogOut, Menu, ShieldCheck, Store } from '../../../shared/icons';
 import type { IconComponent } from '../../../shared/types/furli';
@@ -8,6 +8,7 @@ import { useI18n } from '../../../shared/i18n';
 import { buildAdminNav, buildAdminPageMeta } from '../../../app/routes';
 import type { AdminRouteKey } from '../../../shared/types/furli';
 import { useAdminState } from '../context';
+import { getAdminNotifications, readAdminNotification, type AdminNotificationDto } from '../api';
 
 // No `/admin` prefix here - furli-admin is its own standalone app mounted at the domain root
 // (admin.furliplus.pl), unlike furli-fronted where this same file lived under a `/admin/*`
@@ -44,7 +45,9 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { pendingVerificationCount, toast } = useAdminState();
+  const { accessToken, pendingVerificationCount, toast } = useAdminState();
+  const [notifications, setNotifications] = useState<AdminNotificationDto[]>([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const navSections = useMemo(() => buildAdminNav(t), [t]);
   const routeKey = useMemo(() => resolveAdminRouteKey(location.pathname), [location.pathname]);
   const pageMeta = useMemo(() => buildAdminPageMeta(t)[routeKey], [t, routeKey]);
@@ -52,6 +55,20 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   // mockup's own `!MOBILE_TABS.some((t) => t.id === screen)` check, mockup lines 2182/2239) - both
   // the header's back-chevron and the tab bar's own highlight use this.
   const isDirectTab = MOBILE_TABS.some((tab) => tab.routeKey === routeKey);
+  const unreadNotifications = notifications.filter((notification) => !notification.read).length;
+
+  useEffect(() => {
+    void getAdminNotifications(accessToken).then(setNotifications).catch(() => undefined);
+  }, [accessToken, pendingVerificationCount]);
+
+  const openNotification = async (notification: AdminNotificationDto) => {
+    if (!notification.read) {
+      await readAdminNotification(accessToken, notification.id);
+      setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, read: true } : item));
+    }
+    setNotificationsOpen(false);
+    if (notification.targetPath) navigate(notification.targetPath);
+  };
 
   return (
     <div className="furli-admin-root" style={{ width: '100%', minHeight: '100vh', fontFamily: FONT_BODY, color: C.text, background: C.bg }}>
@@ -159,10 +176,21 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
                   {t('admin.layout.pendingVerification', { count: pendingVerificationCount })}
                 </span>
               ) : null}
-              <div style={{ width: 38, height: 38, borderRadius: 11, background: C.bgCard, boxShadow: shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', color: C.textMedium, cursor: 'pointer', flexShrink: 0 }}>
+              <button type="button" aria-label={t('admin.layout.notifications')} aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen((open) => !open)} style={{ width: 38, height: 38, borderRadius: 11, border: 'none', background: C.bgCard, boxShadow: shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', color: C.textMedium, cursor: 'pointer', flexShrink: 0 }}>
                 <Bell size={18} />
-                {pendingVerificationCount > 0 ? <span style={{ position: 'absolute', top: 9, right: 10, width: 8, height: 8, borderRadius: '50%', background: C.roseDark, border: `2px solid ${C.bgCard}` }} /> : null}
-              </div>
+                {unreadNotifications > 0 ? <span style={{ position: 'absolute', top: 7, right: 7, minWidth: 15, height: 15, padding: '0 3px', borderRadius: 999, background: C.roseDark, color: '#fff', border: `2px solid ${C.bgCard}`, fontSize: 8, fontWeight: 800 }}>{Math.min(99, unreadNotifications)}</span> : null}
+              </button>
+              {notificationsOpen ? (
+                <div style={{ position: 'absolute', right: isMobile ? 12 : 30, top: isMobile ? 58 : 68, width: 'min(380px, calc(100vw - 24px))', maxHeight: 430, overflowY: 'auto', zIndex: 60, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 16, boxShadow: '0 18px 48px rgba(0,0,0,.18)', padding: 8 }}>
+                  <div style={{ padding: '8px 10px', fontFamily: FONT_HEAD, fontSize: 16, fontWeight: 700 }}>{t('admin.layout.notifications')}</div>
+                  {!notifications.length ? <div style={{ padding: 18, color: C.textMuted, fontSize: 12.5 }}>{t('admin.layout.noNotifications')}</div> : notifications.map((notification) => (
+                    <button key={notification.id} onClick={() => void openNotification(notification)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', borderTop: `1px solid ${C.border}`, background: notification.read ? 'transparent' : C.primaryLight, padding: '11px 10px', cursor: 'pointer', color: C.text }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>{notification.title}</div>
+                      <div style={{ fontSize: 11.5, color: C.textSecondary, lineHeight: 1.45, marginTop: 3 }}>{notification.body}</div>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
           <div key={location.pathname} style={{ padding: isMobile ? '16px 14px 96px' : '24px 30px 40px', animation: 'furliRise 0.3s ease' }}>

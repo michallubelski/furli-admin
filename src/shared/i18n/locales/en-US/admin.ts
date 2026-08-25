@@ -35,6 +35,8 @@ export const admin: TranslationNode = {
     more: { title: 'More', subtitle: 'The panel\'s other modules' },
   },
   layout: {
+    notifications: 'Notifications',
+    noNotifications: 'No new notifications.',
     badgeLabel: 'Admin',
     operatorLabel: 'FURLI operator',
     adminRoleLabel: 'Administrator',
@@ -391,6 +393,14 @@ export const admin: TranslationNode = {
     devNote: 'Registry of facility API clients: OAuth2, webhook health monitoring (retries, failures), rate limits, and key revocation. Tied to the "API integration" section in the B2B panel.',
   },
   stats: {
+    providers: 'Total providers',
+    publishedProviders: 'Published providers',
+    customers: 'Total customers',
+    completedBookings: 'Completed bookings',
+    canceledBookings: 'Canceled bookings',
+    reviews: 'Total reviews',
+    noData: 'No data for the selected period.',
+    realDataNote: 'All values come directly from backend operational data.',
     rangeLabels: { '7': '7 days', '30': '30 days', '90': '90 days', '365': '12 months', custom: 'Custom range' },
     allTypes: 'All facility types',
     allCities: 'All cities',

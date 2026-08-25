@@ -85,7 +85,7 @@ export function AdminCatalogPage() {
   };
 
   const addEntry = () => {
-    addCatalogEntry(kind, type, draftLabel, draftSub);
+    void addCatalogEntry(kind, type, draftLabel, draftSub);
     setDraftLabel('');
     setDraftSub('');
   };
@@ -115,9 +115,9 @@ export function AdminCatalogPage() {
             key={entry.id}
             entry={entry}
             hidden={false}
-            onSave={(label, sub) => updateCatalogEntry(kind, entry.id, label, sub)}
-            onHide={() => setCatalogEntryHidden(kind, entry.id, true)}
-            onDelete={() => deleteCatalogEntry(kind, entry.id)}
+            onSave={(label, sub) => void updateCatalogEntry(kind, type, entry.id, label, sub)}
+            onHide={() => void setCatalogEntryHidden(kind, type, entry.id, true, entry.label, entry.sub)}
+            onDelete={() => void deleteCatalogEntry(kind, type, entry.id)}
           />
         ))}
 
@@ -129,9 +129,9 @@ export function AdminCatalogPage() {
                 key={entry.id}
                 entry={entry}
                 hidden
-                onSave={(label, sub) => updateCatalogEntry(kind, entry.id, label, sub)}
-                onHide={() => setCatalogEntryHidden(kind, entry.id, false)}
-                onDelete={() => deleteCatalogEntry(kind, entry.id)}
+                onSave={(label, sub) => void updateCatalogEntry(kind, type, entry.id, label, sub)}
+                onHide={() => void setCatalogEntryHidden(kind, type, entry.id, false, entry.label, entry.sub)}
+                onDelete={() => void deleteCatalogEntry(kind, type, entry.id)}
               />
             ))}
           </>
