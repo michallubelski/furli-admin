@@ -2,8 +2,14 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+ARG NPM_VERSION=11.6.2
+
 COPY package.json package-lock.json ./
-RUN npm ci
+# Keep dependency resolution identical to the npm version used to generate package-lock.json.
+# The npm 10 bundled with node:20-alpine resolves optional native peers differently and rejects
+# this valid lockfile before the application build can start.
+RUN npm install --global "npm@${NPM_VERSION}" \
+    && npm ci
 
 COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
 COPY vite.config.ts ./
