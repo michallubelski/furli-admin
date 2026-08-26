@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { rejectProvider, requestProviderChanges } from './api';
+import { mapAdminProviderDto, rejectProvider, requestProviderChanges } from './api';
 
 const providerResponse = {
   id: 'provider-1',
@@ -30,5 +30,32 @@ describe('admin provider decisions API', () => {
         'Content-Type': 'application/json',
       }),
     }));
+  });
+});
+
+describe('admin provider mapping', () => {
+  it('keeps the providers screen renderable for incomplete legacy records', () => {
+    const mapped = mapAdminProviderDto({
+      id: 'legacy-provider',
+      contactName: 'Jan Kowalski',
+      email: 'jan@example.test',
+      publishReadiness: {
+        ready: false,
+        pct: 25,
+        done: 2,
+        total: 8,
+        missing: ['photos', { key: 'services' }, null],
+      },
+    } as never);
+
+    expect(mapped).toMatchObject({
+      id: 'legacy-provider',
+      name: 'Jan Kowalski',
+      city: '',
+      rating: 0,
+      reviewsCount: 0,
+      billingPhase: undefined,
+      publishReadiness: { missing: ['photos', 'services'] },
+    });
   });
 });

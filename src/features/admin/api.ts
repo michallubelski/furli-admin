@@ -17,6 +17,34 @@ export class AdminApiError extends ApiClientError {
   }
 }
 
+function textValue(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function numberValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function readinessMissing(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((item) => {
+    if (typeof item === 'string') {
+      return item;
+    }
+    // Accept the short-lived object representation returned by older deployments as well.
+    if (item && typeof item === 'object' && 'key' in item && typeof item.key === 'string') {
+      return item.key;
+    }
+    return [];
+  });
+}
+
+function isAdminProviderDto(value: unknown): value is AdminProviderDto {
+  return !!value && typeof value === 'object' && 'id' in value && typeof value.id === 'string';
+}
+
 function asAdminError(error: unknown, fallbackMessage: string): AdminApiError {
   if (error instanceof ApiClientError) {
     return new AdminApiError(error.status, error.message);
@@ -52,7 +80,10 @@ function parseCreatedAtAgeDays(createdAt: string): number {
 }
 
 export function mapAdminProviderDto(dto: AdminProviderDto, current?: AdminProviderUiRecord | null): AdminProviderUiRecord {
-  const profile = dto.profile;
+  // Admin lists also contain imported and legacy providers. Keep one incomplete record from
+  // taking down the entire route while its data is being completed or migrated.
+  const profile = dto.profile ?? ({} as AdminProviderDto['profile']);
+  const billing = dto.billing ?? ({} as AdminProviderDto['billing']);
   // billingStatus/billingPlan/monthlyValue/trialDaysLeft are computed by the backend
   // (see ProviderAccountResponse) from the authoritative Plan/BillingStatus model — don't
   // re-derive pricing or status mapping here.
@@ -60,30 +91,30 @@ export function mapAdminProviderDto(dto: AdminProviderDto, current?: AdminProvid
   const billingPlan = dto.billingPlan || 'main';
   return {
     id: dto.id,
-    name: profile.name,
+    name: textValue(profile.name) || textValue(dto.contactName) || textValue(dto.email) || 'Placówka bez nazwy',
     typeLabel: typeLabel(profile.type),
-    city: profile.city,
-    district: profile.district,
-    street: [profile.street, profile.houseNumber].filter(Boolean).join(' '),
-    postalCode: profile.postalCode,
-    contactName: dto.contactName,
-    email: dto.email,
-    phone: dto.phone,
+    city: textValue(profile.city),
+    district: textValue(profile.district),
+    street: [textValue(profile.street), textValue(profile.houseNumber)].filter(Boolean).join(' '),
+    postalCode: textValue(profile.postalCode),
+    contactName: textValue(dto.contactName),
+    email: textValue(dto.email),
+    phone: textValue(dto.phone),
     verificationStatus: dto.verificationStatus as VerificationStatus,
     suspended: typeof dto.suspended === 'boolean' ? dto.suspended : current?.suspended ?? false,
-    submittedAt: dto.createdAt,
-    ageDays: parseCreatedAtAgeDays(dto.createdAt),
-    rating: profile.rating,
-    reviewsCount: profile.reviews,
+    submittedAt: textValue(dto.createdAt),
+    ageDays: parseCreatedAtAgeDays(textValue(dto.createdAt)),
+    rating: numberValue(profile.rating),
+    reviewsCount: numberValue(profile.reviews),
     billingStatus,
     billingPlan,
     monthlyValue: dto.monthlyValue ?? 0,
     trialDaysLeft: dto.trialDaysLeft,
-    billingPhase: dto.billing.phase,
-    publishedAt: dto.billing.publishedAt,
-    daysLeft: dto.billing.daysLeft,
+    billingPhase: billing.phase,
+    publishedAt: billing.publishedAt,
+    daysLeft: billing.daysLeft,
     publishReadiness: dto.publishReadiness
-      ? { ...dto.publishReadiness, missing: Array.isArray(dto.publishReadiness.missing) ? dto.publishReadiness.missing : [] }
+      ? { ...dto.publishReadiness, missing: readinessMissing(dto.publishReadiness.missing) }
       : null,
     documents: [
       { id: `${dto.id}-business`, label: 'business', status: 'ok' },
@@ -114,7 +145,7 @@ export async function getAdminProviders(accessToken: string, status?: AdminProvi
       token: accessToken,
       fallbackMessage: 'Nie udało się pobrać placówek.',
     });
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? data.filter(isAdminProviderDto) : [];
   } catch (error) {
     throw asAdminError(error, 'Nie udało się pobrać placówek.');
   }

@@ -1,5 +1,5 @@
 import { Plug } from '../../../shared/icons';
-import { Card, DevNote } from '../../../shared/components/ui';
+import { Card } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
@@ -63,7 +63,6 @@ export function AdminIntegrationsPage() {
           );
         })}
       </div>
-      <DevNote>{t('admin.integrations.devNote')}</DevNote>
     </div>
   );
 }

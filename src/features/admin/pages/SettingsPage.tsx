@@ -4,7 +4,6 @@ import { Card, SectionTitle, WizToggle } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
-import { AdminDevNote } from '../components/shared';
 
 const SPECIALIZATIONS = ['Chirurgia', 'Dermatologia', 'Stomatologia', 'Behawiorystyka', 'Strzyżenie', 'Trymowanie', 'Hotel', 'Spacery'];
 const CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Gdańsk', 'Poznań', 'Łódź', 'Katowice'];
@@ -77,7 +76,6 @@ export function AdminSettingsPage() {
         ))}
       </Card>
       <div style={{ gridColumn: '1 / -1' }}>
-        <AdminDevNote>{t('admin.config.devNote')}</AdminDevNote>
       </div>
     </div>
   );

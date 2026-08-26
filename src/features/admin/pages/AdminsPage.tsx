@@ -3,7 +3,7 @@ import { Card, SectionTitle } from '../../../shared/components/ui';
 import { C, FONT_NUM } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
-import { AdminBadge, AdminDevNote } from '../components/shared';
+import { AdminBadge } from '../components/shared';
 
 export function AdminAdminsPage() {
   const { t } = useI18n();
@@ -92,7 +92,6 @@ export function AdminAdminsPage() {
           ))}
         </Card>
       </div>
-      <AdminDevNote>{t('admin.admins.devNote')}</AdminDevNote>
     </div>
   );
 }

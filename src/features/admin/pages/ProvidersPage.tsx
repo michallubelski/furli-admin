@@ -10,7 +10,7 @@ import { useAdminState } from '../context';
 import type { AdminProviderExpiredSubFilter, AdminProviderListFilter, AdminProviderPublishedSubFilter, AdminProviderRecord } from '../model';
 import { providerTypeLabel, publishRequirementLabel } from '../model';
 import { mapAdminProviderDto, reactivateProvider, suspendProvider } from '../api';
-import { AdminAvatar, AdminBadge, AdminDevNote, AdminLinkButton, BillingBadge, ProviderStatusBadge, SearchField, TabButton } from '../components/shared';
+import { AdminAvatar, AdminBadge, AdminLinkButton, BillingBadge, ProviderStatusBadge, SearchField, TabButton } from '../components/shared';
 
 // v44: the "published" tab counts an approved, unsuspended facility whose subscription is either
 // still in trial or a real paying subscription - everything past that (grace/expired) has its own
@@ -219,7 +219,6 @@ export function AdminProvidersPage() {
           );
         })}
       </Card>
-      <AdminDevNote>{t('admin.providers.devNote')}</AdminDevNote>
       {providerId ? <ProviderDetailsModal providerId={providerId} onClose={closeModal} /> : null}
       <ConfirmDangerModal
         open={!!confirmTarget}

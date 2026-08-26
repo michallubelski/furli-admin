@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Store, Tag } from '../../../shared/icons';
-import { Card, DevNote, SectionTitle } from '../../../shared/components/ui';
+import { Card, SectionTitle } from '../../../shared/components/ui';
 import { C, FONT_BODY, FONT_NUM } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import type { ProviderType } from '../../../shared/types/furli';
@@ -158,7 +158,6 @@ export function AdminCatalogPage() {
             {t('admin.catalog.addEntryAction')}
           </button>
         </div>
-        <DevNote>{t('admin.catalog.devNote')}</DevNote>
       </Card>
 
       <Card style={{ padding: 22 }}>

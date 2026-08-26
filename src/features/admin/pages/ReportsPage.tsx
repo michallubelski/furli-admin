@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MessageSquareWarning } from '../../../shared/icons';
-import { Card, DevNote } from '../../../shared/components/ui';
+import { Card } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
@@ -71,7 +71,6 @@ export function AdminReportsPage() {
           );
         })}
       </div>
-      <DevNote>{t('admin.reports.devNote')}</DevNote>
     </div>
   );
 }

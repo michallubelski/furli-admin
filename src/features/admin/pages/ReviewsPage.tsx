@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, Check, Eye, EyeOff } from '../../../shared/icons';
-import { Card, DevNote } from '../../../shared/components/ui';
+import { Card } from '../../../shared/components/ui';
 import { C, FONT_BODY } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
@@ -130,7 +130,6 @@ export function AdminReviewsPage() {
           );
         })}
       </div>
-      <DevNote>{t('admin.reviews.devNote')}</DevNote>
     </div>
   );
 }

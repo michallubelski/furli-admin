@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Check, MessageSquare, MessageSquareWarning, ShieldCheck } from '../../../shared/icons';
-import { Card, DevNote } from '../../../shared/components/ui';
+import { Card } from '../../../shared/components/ui';
 import { C, FONT_BODY } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
@@ -194,7 +194,6 @@ export function AdminQueuePage() {
           })}
         </div>
       )}
-      <DevNote>{t('admin.queue.devNote')}</DevNote>
     </div>
   );
 }

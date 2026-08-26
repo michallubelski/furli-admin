@@ -45,10 +45,6 @@ export function Ring({ value, size = 46, stroke = 4.5, color = C.green }: { valu
 export const inputStyle: CSSProperties = { width: '100%', border: `1px solid ${C.border}`, background: C.bgInput, borderRadius: 12, padding: '11px 14px', fontSize: 14, color: C.text, fontFamily: FONT_BODY };
 export const labelStyle: CSSProperties = { display: 'block', fontSize: 11.5, fontWeight: 700, color: C.textMedium, marginBottom: 7 };
 
-export function DevNote({ children }: { children: ReactNode }) {
-  return <p style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.6, marginTop: 12 }}>{children}</p>;
-}
-
 export function FloatField({
   label,
   value,

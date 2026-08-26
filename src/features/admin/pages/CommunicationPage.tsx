@@ -4,7 +4,7 @@ import { Card, inputStyle, SectionTitle } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
-import { AdminBadge, AdminDevNote } from '../components/shared';
+import { AdminBadge } from '../components/shared';
 
 export function AdminCommunicationPage() {
   const { t } = useI18n();
@@ -64,7 +64,6 @@ export function AdminCommunicationPage() {
           ))}
         </Card>
       </div>
-      <AdminDevNote>{t('admin.communication.devNote')}</AdminDevNote>
     </div>
   );
 }

@@ -147,14 +147,6 @@ export function AdminAvatar({ provider, size = 44 }: { provider: Pick<AdminProvi
   );
 }
 
-export function AdminDevNote({ children }: { children: ReactNode }) {
-  return (
-    <div style={{ marginTop: 18, padding: '12px 16px', border: `1px dashed ${C.primary}`, borderRadius: 12, background: 'oklch(0.97 0.02 75 / 0.4)', fontSize: 12, color: C.textSecondary, lineHeight: 1.55 }}>
-      {children}
-    </div>
-  );
-}
-
 export function AdminLinkButton({ to, children }: { to: string; children: ReactNode }) {
   return (
     <Link to={to} style={{ padding: '9px 14px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.bgCard, color: C.textMedium, fontSize: 12.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
