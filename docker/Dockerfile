@@ -19,6 +19,7 @@ RUN npm install --global "npm@${NPM_VERSION}" \
 COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
 COPY vite.config.ts ./
 COPY index.html ./
+COPY public ./public
 COPY src ./src
 COPY .env.production ./.env.production
 
