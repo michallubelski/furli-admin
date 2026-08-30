@@ -14,7 +14,7 @@ mkdir -p deployment
 echo "==> Kopiowanie niezbednych plikow do zbudowania i uruchomienia na serwerze..."
 cp package.json package-lock.json tsconfig.json tsconfig.app.json tsconfig.node.json \
    vite.config.ts vite.config.js vite.config.d.ts index.html .env.production deployment/
-cp -r src docker deployment/
+cp -r src public docker deployment/
 
 # .htpasswd (Basic Auth) jest lokalnym/serwerowym sekretem - nigdy nie trafia do deployment/;
 # musi juz recznie istniec na serwerze obok docker-compose.yml (patrz docker/docker-compose.yml).
