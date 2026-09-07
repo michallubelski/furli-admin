@@ -1,0 +1,2 @@
+# Basic Auth jest wspolny dla wszystkich srodowisk w docker-compose.yml.
+services: {}

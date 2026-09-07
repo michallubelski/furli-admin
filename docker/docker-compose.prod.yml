@@ -1,0 +1,3 @@
+# Nadpisania specyficzne dla srodowiska "prod". Dzis brak - patrz docker-compose.dev.yml (ten sam
+# powod istnienia tego pliku - spojnosc + miejsce na przyszle roznice).
+services: {}

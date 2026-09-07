@@ -8,6 +8,7 @@ Thumbs.db
 .env.*
 !.env.local
 !.env.template
+!docker/.env.template
 .aws/
 *.pem
 *.key
@@ -15,5 +16,6 @@ Thumbs.db
 *.tsbuildinfo
 docker/.htpasswd
 
-# Wygenerowany przez ./build.sh - samowystarczalny katalog do recznego wdrozenia, nie commitowac
-deployment/
+# Wygenerowany przez ./build.sh [env] - samowystarczalny katalog do recznego wdrozenia jednego
+# srodowiska (np. deployment-dev/, deployment-prod/), nie commitowac
+deployment-*/

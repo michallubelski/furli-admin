@@ -119,7 +119,12 @@ http://localhost:5175
 
 - `.env.template` - template for development,
 - `.env.local` - local developer configuration,
-- `.env.production` - values used during the Docker image build.
+- `docker/.env.template` - template for `docker/.env.dev` / `docker/.env.prod` on the server (one
+  file, real values live in the per-environment file - never committed, see `.gitignore`), passed
+  as a Docker build arg and baked into the Vite bundle at image-build time - see
+  `docker/Dockerfile` and `docker/docker-compose.yml` / `docker/docker-compose.<env>.yml`.
+  Replaces the previous `.env.production` (removed from the Docker build; the file itself was
+  already gitignored, never committed).
 
 `VITE_API_PROXY_TARGET`
 - used only in development by Vite,

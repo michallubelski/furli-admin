@@ -21,7 +21,16 @@ COPY vite.config.ts ./
 COPY index.html ./
 COPY public ./public
 COPY src ./src
-COPY .env.production ./.env.production
+
+# Baked into the bundle by Vite at build time (any VITE_-prefixed process env var is exposed via
+# import.meta.env automatically - no .env file needed). Passed as a build arg from
+# docker-compose.yml's build.args, sourced from docker/.env on the server - see
+# docker/.env.prod.template / docker/.env.dev.template. Replaces the previous
+# `COPY .env.production` (that file was already gitignored, never committed, but required a real
+# values file to sit at the repo root on whichever machine ran the build - docker/.env is now the
+# one place server-side config lives, consistent with every other app/backend).
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
 

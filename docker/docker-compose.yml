@@ -3,17 +3,30 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: furli-admin
+      args:
+        # Baked into the Vite bundle at build time (see docker/Dockerfile) - comes from
+        # docker/.env.dev or docker/.env.prod on the server (see docker/.env.template), never
+        # committed. Default reproduces today's .env.production value (empty) exactly when the
+        # env file doesn't override it.
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
+    container_name: "${FURLI_NAME_PREFIX:-}furli-admin"
     volumes:
-      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+      - ${FURLI_APPS_ROOT:-/opt/furli}/furli-infra/nginx-proxy/auth/preview.htpasswd:/etc/nginx/.htpasswd:ro
     # No host port published on purpose - reachable only via furli-net + container name from
     # furli-nginx-proxy, same pattern as furli-frontend/furli-customer-portal.
     networks:
-      - furli-net
+      furli-net:
+        # Stable alias, independent of FURLI_NAME_PREFIX/container_name above, so nginx-proxy's
+        # vhosts keep working unchanged in any environment - see furli-infra README
+        # "Environments".
+        aliases:
+          - furli-admin
     restart: unless-stopped
 
 networks:
   # Shared with furli-infra's nginx-proxy/docker-compose.yml - external, created once on the host
-  # with `docker network create furli-net`.
+  # with `docker network create furli-net`. FURLI_NET namespaces this per environment (see
+  # furli-infra README "Environments"); unset (prod) reproduces exactly today's shared "furli-net".
   furli-net:
+    name: "${FURLI_NET:-furli-net}"
     external: true
