@@ -43,6 +43,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (draft/pending/changes_requested) to avoid an extra per-row staff query for every other provider.
 
 ### Fixed
+- Provider details now render facility descriptions with the same safe bold, italic, underline,
+  paragraph, and list formatting available in the provider panel instead of exposing HTML tags.
 - A report moved to `investigating` no longer disappears from both the Kolejka decision queue and
   the Zgłoszenia "Otwarte" tab - both now treat it the same as `open` (only `resolved` drops out).
 # 2026-08-19

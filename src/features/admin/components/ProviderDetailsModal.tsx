@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Ban, Check, CreditCard, FileText, LogIn, Mail, MapPin, Phone, Play, RefreshCw, ShieldCheck, Store, X } from '../../../shared/icons';
 import { ApiClientError } from '../../../shared/api/client';
 import { ConfirmDangerModal, SectionTitle, inputStyle } from '../../../shared/components/ui';
+import { RichTextContent } from '../../../shared/components/RichTextContent';
 import { C, FONT_HEAD } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import type { ProviderAccount } from '../../../shared/types/furli';
@@ -262,7 +263,7 @@ export function ProviderDetailsModal({ providerId, onClose }: { providerId: stri
                     </div>
                     <div style={{ padding: '12px 14px', borderRadius: 14, background: C.bgMuted, border: `1px solid ${C.border}` }}>
                       <div style={{ fontSize: 11.5, color: C.textMuted, marginBottom: 6 }}>{t('admin.providerModal.profileDescription')}</div>
-                      <div style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{detail?.profile.description || t('admin.providerModal.noProfileDescription')}</div>
+                      <RichTextContent value={detail?.profile.description || ''} emptyFallback={t('admin.providerModal.noProfileDescription')} />
                     </div>
                   </div>
                 </div>

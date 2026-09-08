@@ -19,3 +19,32 @@ body,
 body {
   min-height: 100vh;
 }
+
+.furli-rich-text-content {
+  color: oklch(0.30 0.05 55);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.furli-rich-text-content-empty {
+  color: oklch(0.55 0.03 55);
+}
+
+.furli-rich-text-content p {
+  margin: 0 0 0.55em;
+}
+
+.furli-rich-text-content p:last-child {
+  margin-bottom: 0;
+}
+
+.furli-rich-text-content ul,
+.furli-rich-text-content ol {
+  margin: 0.4em 0;
+  padding-left: 1.5em;
+}
+
+.furli-rich-text-content li + li {
+  margin-top: 0.2em;
+}
