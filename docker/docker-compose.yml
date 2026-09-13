@@ -10,8 +10,6 @@ services:
         # env file doesn't override it.
         VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
     container_name: "${FURLI_NAME_PREFIX:-}furli-admin"
-    volumes:
-      - ${FURLI_APPS_ROOT:-/opt/furli}/furli-infra/nginx-proxy/auth/preview.htpasswd:/etc/nginx/.htpasswd:ro
     # No host port published on purpose - reachable only via furli-net + container name from
     # furli-nginx-proxy, same pattern as furli-frontend/furli-customer-portal.
     networks:

@@ -171,13 +171,7 @@ docker network create furli-net
 This compose file publishes **no host port** - the only intended path to the app in production is
 through the `nginx-proxy` container (`admin.furliplus.pl`, see `furli-infra`).
 
-The container also gates `/` and `/assets/` behind HTTP Basic Auth as a preview layer, independent
-of the real admin login. Before running, copy `docker/.htpasswd.example` to `docker/.htpasswd`
-(gitignored) and replace the placeholder with a real bcrypt hash:
-
-```bash
-htpasswd -nB <username>
-```
+The application is protected by its existing administrator login and backend ADMIN authorization.
 
 ## Production domain
 

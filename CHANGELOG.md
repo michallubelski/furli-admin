@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- Removed the temporary preview Basic Auth from the admin container. The existing administrator
+  login and backend ADMIN authorization remain the only access flow; no Closed Beta gate was added.
 - Provider records are no longer seeded, restored, or cached in `localStorage`; the admin provider
   list and preview now use the backend API as their only source of truth.
 - Added the backend `draft` verification status to admin badges and a safe fallback for unexpected

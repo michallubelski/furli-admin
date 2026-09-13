@@ -1,2 +1,2 @@
-# Basic Auth jest wspolny dla wszystkich srodowisk w docker-compose.yml.
+# DEV uses the same container topology as production.
 services: {}
