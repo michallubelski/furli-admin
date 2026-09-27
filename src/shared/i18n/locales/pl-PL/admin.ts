@@ -330,6 +330,7 @@ export const admin: TranslationNode = {
     sectionTitle: '{kind} · {type}',
     itemCount: '{count} pozycji',
     emptyForType: 'Ten typ placówki nie ma jeszcze pozycji w katalogu.',
+    furliCatalogNote: 'Usługi, warianty, dodatki i cechy groomera, petsittera, dogwalkera i psiego hotelu pochodzą z katalogu usług Furli w backendzie i nie są tu edytowane.',
     hiddenSectionLabel: 'Ukryte',
     addedFromPanel: 'dodane z panelu',
     editAction: 'Edytuj',

@@ -328,6 +328,7 @@ export const admin: TranslationNode = {
     sectionTitle: '{kind} · {type}',
     itemCount: '{count} items',
     emptyForType: 'This facility type has no catalog entries yet.',
+    furliCatalogNote: 'Services, variants, add-ons and features of groomers, pet sitters, dog walkers and dog hotels come from the Furli service catalog in the backend and are not edited here.',
     hiddenSectionLabel: 'Hidden',
     addedFromPanel: 'added from the panel',
     editAction: 'Edit',

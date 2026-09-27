@@ -55,8 +55,15 @@ export function hiddenCatalogEntries(kind: CatalogKind, type: ProviderType, over
   return allEntries(kind, type, overlay).filter((entry) => overlay.hidden.includes(entry.id));
 }
 
+// Types whose services and provider features come from Furli's service catalog in furli-backend
+// (reference-data/service-catalog-v1.json, GET /api/public/service-catalog). The provider panel never
+// read this overlay for them, so an entry edited here changed nothing - their tabs are left out. (The
+// hotel is the fourth catalog type; this panel's ProviderType has no hotel, so it never had a tab.)
+export const FURLI_CATALOG_TYPES: readonly ProviderType[] = ['groomer', 'petsitter', 'walker'];
+
 export function catalogProviderTypes(kind: CatalogKind, overlay: CatalogOverlay): ProviderType[] {
-  const allTypes = Object.keys(kind === 'services' ? SERVICE_CATALOG_BASE : SPECIALTIES_BY_TYPE) as ProviderType[];
+  const allTypes = (Object.keys(kind === 'services' ? SERVICE_CATALOG_BASE : SPECIALTIES_BY_TYPE) as ProviderType[])
+    .filter((type) => !FURLI_CATALOG_TYPES.includes(type));
   if (kind === 'services') {
     return allTypes;
   }

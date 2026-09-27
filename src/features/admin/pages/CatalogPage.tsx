@@ -104,6 +104,7 @@ export function AdminCatalogPage() {
             ))}
           </span>
         </div>
+        <p style={{ fontSize: 12.5, color: C.textMuted, lineHeight: 1.55, margin: '0 0 14px' }}>{t('admin.catalog.furliCatalogNote')}</p>
 
         <SectionTitle Icon={Tag} right={<span style={{ fontSize: 12, color: C.textMuted, fontFamily: FONT_NUM }}>{t('admin.catalog.itemCount', { count: visible.length })}</span>}>
           {t('admin.catalog.sectionTitle', { kind: t(kind === 'services' ? 'admin.catalog.kindServices' : 'admin.catalog.kindSpecialties'), type: t(`admin.providerType.${type}`) })}
