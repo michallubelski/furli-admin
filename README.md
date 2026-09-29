@@ -59,6 +59,7 @@ the admin panel):
 - `/reports`
 - `/api-integrations`
 - `/analytics`
+- `/service-catalog` - "Katalog usług": Furli's service catalog (services, variants, add-ons, provider features per provider type), edited as a draft and published through furli-backend's `/api/admin/service-catalog`
 - `/communication`
 - `/settings`
 - `/admins`

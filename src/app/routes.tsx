@@ -1,6 +1,7 @@
 import type { AdminRouteKey } from '../shared/types/furli';
 import {
   BarChart3,
+  ClipboardList,
   CreditCard,
   LayoutDashboard,
   Megaphone,
@@ -48,6 +49,7 @@ export function buildAdminPageMeta(t: Translate): Record<AdminRouteKey, PageMeta
     apiIntegrations: { title: t('admin.routes.apiIntegrations.title'), subtitle: t('admin.routes.apiIntegrations.subtitle') },
     analytics: { title: t('admin.routes.analytics.title'), subtitle: t('admin.routes.analytics.subtitle') },
     catalog: { title: t('admin.routes.catalog.title'), subtitle: t('admin.routes.catalog.subtitle') },
+    serviceCatalog: { title: t('admin.routes.serviceCatalog.title'), subtitle: t('admin.routes.serviceCatalog.subtitle') },
     communication: { title: t('admin.routes.communication.title'), subtitle: t('admin.routes.communication.subtitle') },
     settings: { title: t('admin.routes.settings.title'), subtitle: t('admin.routes.settings.subtitle') },
     admins: { title: t('admin.routes.admins.title'), subtitle: t('admin.routes.admins.subtitle') },
@@ -80,6 +82,7 @@ export function buildAdminNav(t: Translate): NavSection[] {
       items: [
         { path: '/api-integrations', label: t('admin.nav.apiIntegrations'), Icon: Plug },
         { path: '/analytics', label: t('admin.nav.analytics'), Icon: BarChart3 },
+        { path: '/service-catalog', label: t('admin.nav.serviceCatalog'), Icon: ClipboardList },
         { path: '/catalog', label: t('admin.nav.catalog'), Icon: Tag },
         { path: '/communication', label: t('admin.nav.communication'), Icon: Megaphone },
         { path: '/settings', label: t('admin.nav.settings'), Icon: SlidersHorizontal },

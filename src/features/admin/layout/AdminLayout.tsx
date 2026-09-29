@@ -22,6 +22,7 @@ function resolveAdminRouteKey(pathname: string): AdminRouteKey {
   if (pathname.startsWith('/reports')) return 'reports';
   if (pathname.startsWith('/api-integrations')) return 'apiIntegrations';
   if (pathname.startsWith('/analytics')) return 'analytics';
+  if (pathname.startsWith('/service-catalog')) return 'serviceCatalog';
   if (pathname.startsWith('/catalog')) return 'catalog';
   if (pathname.startsWith('/communication')) return 'communication';
   if (pathname.startsWith('/settings')) return 'settings';

@@ -160,6 +160,7 @@ export type AdminRouteKey =
   | 'apiIntegrations'
   | 'analytics'
   | 'catalog'
+  | 'serviceCatalog'
   | 'communication'
   | 'settings'
   | 'admins'

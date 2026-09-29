@@ -12,6 +12,7 @@ import { AdminProvidersPage } from './pages/ProvidersPage';
 import { AdminQueuePage } from './pages/QueuePage';
 import { AdminReportsPage } from './pages/ReportsPage';
 import { AdminReviewsPage } from './pages/ReviewsPage';
+import { AdminServiceCatalogPage } from './serviceCatalog/ServiceCatalogPage';
 import { AdminSettingsPage } from './pages/SettingsPage';
 import { AdminSubscriptionsPage } from './pages/SubscriptionsPage';
 import { AdminVerificationPage } from './pages/VerificationPage';
@@ -30,6 +31,7 @@ export function AdminRoutes({ accessToken, onLogout }: { accessToken: string; on
           <Route path="reports" element={<AdminReportsPage />} />
           <Route path="api-integrations" element={<AdminIntegrationsPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="service-catalog" element={<AdminServiceCatalogPage />} />
           <Route path="catalog" element={<AdminCatalogPage />} />
           <Route path="communication" element={<AdminCommunicationPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
