@@ -176,6 +176,7 @@ export interface AdminReviewRecord {
   date: string;
   reason: string;
   status: AdminReviewStatus;
+  openReports?: number;
   // A review can carry a second, independent rating dimension for the staff member who handled the
   // visit (not every review has one - a facility with no team, or a review left before staff
   // attribution existed, has none). Hiding the review removes both dimensions at once; there's no

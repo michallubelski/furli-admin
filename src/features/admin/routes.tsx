@@ -11,7 +11,7 @@ import { MorePage } from './pages/MorePage';
 import { AdminProvidersPage } from './pages/ProvidersPage';
 import { AdminQueuePage } from './pages/QueuePage';
 import { AdminReportsPage } from './pages/ReportsPage';
-import { AdminReviewsPage } from './pages/ReviewsPage';
+import { AdminReviewsPage } from './reviews/ReviewsPage';
 import { AdminServiceCatalogPage } from './serviceCatalog/ServiceCatalogPage';
 import { AdminSettingsPage } from './pages/SettingsPage';
 import { AdminSubscriptionsPage } from './pages/SubscriptionsPage';

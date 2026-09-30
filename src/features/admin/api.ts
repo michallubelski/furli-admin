@@ -1,6 +1,6 @@
 import { apiRequest, ApiClientError } from '../../shared/api/client';
 import type { AdminAccount, AdminActivityLogEntry, ProviderAccount, ProviderType, VerificationStatus } from '../../shared/types/furli';
-import type { AdminGdprRequest, AdminProviderRecord as AdminProviderUiRecord, AdminReferralCode, AdminReportRecord, AdminReviewRecord, AdminBroadcastRecord } from './model';
+import type { AdminGdprRequest, AdminProviderRecord as AdminProviderUiRecord, AdminReferralCode, AdminReportRecord, AdminBroadcastRecord } from './model';
 import type { CatalogKind } from './catalog';
 
 export interface AdminProviderDto extends ProviderAccount {
@@ -276,12 +276,6 @@ async function adminWrite<T>(accessToken: string, path: string, method: 'POST' |
   return apiRequest<T>(path, { method, token: accessToken, body, fallbackMessage });
 }
 
-export async function getAdminReviews(accessToken: string): Promise<AdminReviewRecord[]> {
-  return adminGet(accessToken, '/api/admin/reviews', 'Nie udało się pobrać opinii.');
-}
-export async function moderateAdminReview(accessToken: string, id: string, status: AdminReviewRecord['status'], reason?: string): Promise<void> {
-  await adminWrite(accessToken, `/api/admin/reviews/${id}`, 'PATCH', { status, reason }, 'Nie udało się zmienić statusu opinii.');
-}
 export async function getAdminReports(accessToken: string): Promise<AdminReportRecord[]> {
   const reports = await adminGet<Array<Omit<AdminReportRecord, 'priority'> & { priority: 'low' | 'medium' | 'high' }>>(accessToken, '/api/admin/reports', 'Nie udało się pobrać zgłoszeń.');
   return reports.map((report) => ({ ...report, priority: report.priority === 'high' ? 'Wysoka' : report.priority === 'medium' ? 'Średnia' : 'Niska' }));

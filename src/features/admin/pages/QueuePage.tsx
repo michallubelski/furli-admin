@@ -66,8 +66,8 @@ function buildItems(t: (key: string, values?: Record<string, string | number>) =
       title: t('admin.queue.reviewTitle', { rating: review.rating, provider: review.providerName }),
       sub: review.text,
       meta: review.date,
-      urgent: URGENT_REVIEW_PATTERN.test(review.reason || ''),
-      warning: review.reason,
+      urgent: URGENT_REVIEW_PATTERN.test(review.text || ''),
+      warning: review.openReports ? t('admin.queue.reviewOpenReports', { count: review.openReports }) : undefined,
     });
   }
   for (const report of reports) {
@@ -107,7 +107,7 @@ function filterButtonStyle(active: boolean, color?: string): React.CSSProperties
 
 export function AdminQueuePage() {
   const { t } = useI18n();
-  const { providers, reviews, reports, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, moderateReview, resolveReport, showToast } = useAdminState();
+  const { providers, reviews, reports, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, resolveReport, showToast } = useAdminState();
   const [filter, setFilter] = useState<QueueFilter>('all');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -181,8 +181,8 @@ export function AdminQueuePage() {
                   ) : null}
                   {item.kind === 'review' ? (
                     <>
-                      <button onClick={() => moderateReview(item.refId, 'hidden')} style={adminActionButtonStyle.danger}>{t('admin.queue.hideReview')}</button>
-                      <button onClick={() => moderateReview(item.refId, 'published')} style={adminActionButtonStyle.success}>{t('admin.queue.dismissReport')}</button>
+                      {/* Hiding needs a reason the author is told, so the decision is made on the review's page. */}
+                      <AdminLinkButton to={`/reviews?reviewId=${item.refId}`}>{t('admin.queue.reviewDecide')}</AdminLinkButton>
                     </>
                   ) : null}
                   {item.kind === 'report' ? (

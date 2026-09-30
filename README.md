@@ -59,6 +59,7 @@ the admin panel):
 - `/reports`
 - `/api-integrations`
 - `/analytics`
+- `/reviews` - review moderation (furli-backend `/api/admin/reviews`): reported reviews first, a review's reports and history, keep / hide (reason required, the author is told) / restore, hide a provider's reply; "Zasady i terminy" sets the review time limits (`/api/admin/review-policy`)
 - `/service-catalog` - "Katalog usług": Furli's service catalog (services, variants, add-ons, provider features per provider type), edited as a draft and published through furli-backend's `/api/admin/service-catalog`
 - `/communication`
 - `/settings`

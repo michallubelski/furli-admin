@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { AdminActivityLogEntry } from '../../shared/types/furli';
 import { nowLabel } from '../../shared/utils/furli';
 import { createAdminSeedData, type AdminSeedData } from './mockData';
-import { completeAdminGdprRequest, createAdminBroadcast, createAdminCatalogEntry, createAdminReferralCode, deleteAdminCatalogEntry, getAdminActivity, getAdminAudit, getAdminBroadcasts, getAdminCatalog, getAdminGdprRequests, getAdminPendingProviderCount, getAdminProviders, getAdminReferralCodes, getAdminReports, getAdminReviews, getAdminUsers, mapAdminProviderDto, moderateAdminReview, setAdminCatalogVisibility, updateAdminCatalogEntry, updateAdminReport } from './api';
+import { completeAdminGdprRequest, createAdminBroadcast, createAdminCatalogEntry, createAdminReferralCode, deleteAdminCatalogEntry, getAdminActivity, getAdminAudit, getAdminBroadcasts, getAdminCatalog, getAdminGdprRequests, getAdminPendingProviderCount, getAdminProviders, getAdminReferralCodes, getAdminReports, getAdminUsers, mapAdminProviderDto, setAdminCatalogVisibility, updateAdminCatalogEntry, updateAdminReport } from './api';
 import type {
   AdminFeatureFlag,
   AdminGdprRequest,
@@ -15,6 +15,7 @@ import type {
 import { SERVICE_CATALOG_BASE, serviceKeyFromName } from '../../shared/constants/serviceCatalog';
 import { SPECIALTIES_BY_TYPE } from '../../shared/constants/specialties';
 import type { CatalogKind } from './catalog';
+import { listReviews, REVIEWS_CHANGED_EVENT } from './reviews/api';
 import type { ProviderType } from '../../shared/types/furli';
 
 const STORAGE_KEY = 'furli_admin_v1';
@@ -31,7 +32,8 @@ interface AdminContextValue extends AdminSeedData {
   refreshProviders: () => Promise<void>;
   refreshPendingVerificationCount: () => Promise<void>;
   logAudit: (action: string, target: string) => void;
-  moderateReview: (reviewId: string, nextStatus: AdminReviewRecord['status']) => Promise<void>;
+  /** Reported reviews waiting for a decision (the sidebar badge); `reviews` lists them for the queue. */
+  reportedReviewCount: number;
   resolveReport: (reportId: string) => Promise<void>;
   setIntegrationStatus: (integrationId: string, status: AdminIntegrationRecord['status']) => void;
   addBroadcast: (title: string, audience?: string, channel?: string) => Promise<void>;
@@ -177,7 +179,6 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
   useEffect(() => {
     let cancelled = false;
     void Promise.all([
-      getAdminReviews(accessToken),
       getAdminReports(accessToken),
       getAdminBroadcasts(accessToken),
       getAdminReferralCodes(accessToken),
@@ -185,7 +186,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
       getAdminCatalog(accessToken),
       getAdminUsers(accessToken),
       getAdminAudit(accessToken),
-    ]).then(([reviews, reports, broadcasts, referralCodes, gdprRequests, catalog, adminUsers, audit]) => {
+    ]).then(([reports, broadcasts, referralCodes, gdprRequests, catalog, adminUsers, audit]) => {
       if (!cancelled) {
         const catalogOverlay = { services: { added: [], edited: {}, hidden: [] }, specialties: { added: [], edited: {}, hidden: [] } } as AdminSeedData['catalogOverlay'];
         catalog.forEach((entry) => {
@@ -197,11 +198,38 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
           if (entry.hidden) catalogOverlay[entry.kind].hidden.push(entry.key);
         });
         const admins = adminUsers.map((admin) => ({ id: admin.id, name: admin.name || admin.email.split('@')[0], email: admin.email, roleLabel: admin.adminRole || admin.role, lastSeen: admin.lastActiveAt ? new Date(admin.lastActiveAt).toLocaleString('pl-PL') : '—', presenceLabel: admin.lastActiveAt && Date.now() - new Date(admin.lastActiveAt).getTime() < 5 * 60_000 ? 'online' : undefined }));
-        setState((current) => ({ ...current, reviews, reports, broadcasts, referralCodes, gdprRequests, catalogOverlay, admins, audit }));
+        setState((current) => ({ ...current, reports, broadcasts, referralCodes, gdprRequests, catalogOverlay, admins, audit }));
       }
     }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [accessToken]);
+
+  const [reportedReviewCount, setReportedReviewCount] = useState(0);
+  const loadReportedReviews = useCallback(() => {
+    listReviews(accessToken, { tab: 'reported', size: 50 })
+      .then((page) => {
+        setReportedReviewCount(page.counts.reported);
+        const reviews: AdminReviewRecord[] = page.items.map((review) => ({
+          id: review.id,
+          providerName: review.providerName,
+          author: review.author,
+          rating: review.rating,
+          text: review.text || '',
+          date: new Date(review.createdAt).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' }),
+          reason: '',
+          status: 'reported',
+          openReports: review.openReports,
+        }));
+        setState((current) => ({ ...current, reviews }));
+      })
+      .catch(() => undefined);
+  }, [accessToken]);
+
+  useEffect(() => {
+    loadReportedReviews();
+    window.addEventListener(REVIEWS_CHANGED_EVENT, loadReportedReviews);
+    return () => window.removeEventListener(REVIEWS_CHANGED_EVENT, loadReportedReviews);
+  }, [loadReportedReviews]);
 
   const logAudit = useCallback((action: string, target: string) => {
     setState((current) => ({
@@ -223,20 +251,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     refreshProviders,
     refreshPendingVerificationCount,
     logAudit,
-    moderateReview: async (reviewId, nextStatus) => {
-      await moderateAdminReview(accessToken, reviewId, nextStatus);
-      setState((current) => {
-        const review = current.reviews.find((item) => item.id === reviewId);
-        if (!review) {
-          return current;
-        }
-        return {
-          ...current,
-          reviews: current.reviews.map((item) => item.id === reviewId ? { ...item, status: nextStatus } : item),
-          audit: pushAudit(`Zmieniono status opinii na ${nextStatus}`, review.providerName, current.audit),
-        };
-      });
-    },
+    reportedReviewCount,
     resolveReport: async (reportId) => {
       await updateAdminReport(accessToken, reportId, 'resolved');
       setState((current) => {

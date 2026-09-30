@@ -19,7 +19,8 @@ export interface NavEntry {
   path: string;
   label: string;
   Icon: IconComponent;
-  badge?: 'pending';
+  // pending: providers waiting for verification; reviews: reported reviews waiting for a decision.
+  badge?: 'pending' | 'reviews';
 }
 
 export interface NavSection {
@@ -74,7 +75,7 @@ export function buildAdminNav(t: Translate): NavSection[] {
       group: t('admin.nav.finance'),
       items: [
         { path: '/subscriptions', label: t('admin.nav.subscriptions'), Icon: CreditCard },
-        { path: '/reviews', label: t('admin.nav.reviews'), Icon: MessageSquare },
+        { path: '/reviews', label: t('admin.nav.reviews'), Icon: MessageSquare, badge: 'reviews' },
       ],
     },
     {

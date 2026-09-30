@@ -46,7 +46,8 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { accessToken, pendingVerificationCount, toast } = useAdminState();
+  const { accessToken, pendingVerificationCount, reportedReviewCount, toast } = useAdminState();
+  const badgeFor = (badge?: 'pending' | 'reviews') => (badge === 'pending' ? pendingVerificationCount : badge === 'reviews' ? reportedReviewCount : 0);
   const [notifications, setNotifications] = useState<AdminNotificationDto[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const navSections = useMemo(() => buildAdminNav(t), [t]);
@@ -140,9 +141,9 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
                     >
                       <item.Icon size={18} />
                       {item.label}
-                      {item.badge === 'pending' && pendingVerificationCount > 0 ? (
-                        <span style={{ marginLeft: 'auto', background: active ? '#fff' : C.amber, color: active ? C.amber : '#fff', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
-                          {pendingVerificationCount}
+                      {badgeFor(item.badge) > 0 ? (
+                        <span title={item.badge === 'reviews' ? t('admin.reviews.reportedBadge', { count: badgeFor(item.badge) }) : undefined} style={{ marginLeft: 'auto', background: active ? '#fff' : item.badge === 'reviews' ? C.roseDark : C.amber, color: active ? C.amber : '#fff', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                          {badgeFor(item.badge)}
                         </span>
                       ) : null}
                     </NavLink>
