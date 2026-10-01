@@ -4,8 +4,8 @@ import { C } from '../constants/theme';
 import { useI18n } from '../i18n';
 import { Calendar } from '../icons';
 
-// Every date a person types, in every form: DD.MM.RRRR, with the dots put in while the digits are
-// typed (nobody types a dot or a dash), plus a calendar button into the browser's own picker. The
+// Every date a person types, in every form: DD.MM.RRRR, with each dot put in as soon as the day or
+// the month is typed (nobody types a dot or a dash), plus a calendar button into the browser's own picker. The
 // same component in furli-fronted, furli-customer-portal and furli-admin - a native
 // <input type="date"> shows whatever format the *browser's* language dictates (mm/dd/yyyy in an
 // English browser), so it isn't used for typing anywhere.
@@ -13,11 +13,15 @@ import { Calendar } from '../icons';
 
 const DIGITS = 8;
 
-/** "24062026" -> "24.06.2026"; any separators the user typed are dropped first. */
-export function maskDate(raw: string): string {
+/**
+ * "24062026" -> "24.06.2026"; any separators the user typed are dropped first. `eager` (while typing)
+ * adds a dot as soon as the day or the month is complete ("24" -> "24.", "2406" -> "24.06."), so the
+ * person sees it coming instead of trying to type it.
+ */
+export function maskDate(raw: string, eager = false): string {
   const digits = raw.replace(/\D/g, '').slice(0, DIGITS);
-  if (digits.length > 4) return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
-  if (digits.length > 2) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length > 4 || (eager && digits.length === 4)) return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4)}`;
+  if (digits.length > 2 || (eager && digits.length === 2)) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
   return digits;
 }
 
@@ -112,15 +116,31 @@ export function DateInput({ id, value, onChange, min, max, required, disabled, i
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.target;
-    const raw = normalizePasted(input.value);
+    let raw = normalizePasted(input.value);
     // Keeps the cursor after the same digit when editing in the middle (the dots move around it).
-    const digitsBeforeCaret = raw.slice(0, input.selectionStart ?? raw.length).replace(/\D/g, '').length;
-    const next = maskDate(raw);
+    let digitsBeforeCaret = raw.slice(0, input.selectionStart ?? raw.length).replace(/\D/g, '').length;
+    const inputType = (event.nativeEvent as InputEvent | undefined)?.inputType || '';
+    const deleting = inputType.startsWith('delete');
+    // Backspace/Delete that hit only a dot between digits removes the digit next to it - otherwise
+    // the dot would come straight back and deleting would get stuck on it. Right after a trailing
+    // dot ("24.") deleting simply drops the dot: deleting masks without the eager dot.
+    if (deleting && maskDate(raw).length > raw.length) {
+      const digits = raw.replace(/\D/g, '');
+      const removeAt = inputType === 'deleteContentForward' ? digitsBeforeCaret : digitsBeforeCaret - 1;
+      if (removeAt >= 0 && removeAt < digits.length) {
+        raw = digits.slice(0, removeAt) + digits.slice(removeAt + 1);
+        if (inputType !== 'deleteContentForward') digitsBeforeCaret -= 1;
+      }
+    }
+    const next = maskDate(raw, !deleting);
     apply(next);
     requestAnimationFrame(() => {
       const el = textRef.current;
       if (!el || document.activeElement !== el) return;
-      el.setSelectionRange(caretAfterDigits(next, digitsBeforeCaret), caretAfterDigits(next, digitsBeforeCaret));
+      let position = caretAfterDigits(next, digitsBeforeCaret);
+      // Typing: past a dot that follows the digit, so the next digit lands after it.
+      while (!deleting && digitsBeforeCaret > 0 && position < next.length && next[position] === '.') position += 1;
+      el.setSelectionRange(position, position);
     });
   };
 

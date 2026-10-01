@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { caretAfterDigits, DateInput, displayToIso, maskDate } from '../src/shared/components/DateInput';
 import { I18nProvider } from '../src/shared/i18n';
 
+// The field moves the cursor in the next animation frame - wait for it before placing the cursor.
+const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
 // Every typed date is DD.MM.RRRR and the dots come by themselves - the person only types digits.
 
 function Field({ initial = '', min, max, onChange = () => undefined }: { initial?: string; min?: string; max?: string; onChange?: (iso: string) => void }) {
@@ -27,6 +30,15 @@ describe('the date mask', () => {
     expect(maskDate('24062026')).toBe('24.06.2026');
     expect(maskDate('24-06/2026')).toBe('24.06.2026');
     expect(maskDate('240620261')).toBe('24.06.2026');
+  });
+
+  it('while typing puts each dot in as soon as the day or the month is complete', () => {
+    expect(maskDate('24', true)).toBe('24.');
+    expect(maskDate('240', true)).toBe('24.0');
+    expect(maskDate('2406', true)).toBe('24.06.');
+    expect(maskDate('24062026', true)).toBe('24.06.2026');
+    expect(maskDate('24')).toBe('24');
+    expect(maskDate('2406')).toBe('24.06');
   });
 
   it('reads only a day that exists', () => {
@@ -82,13 +94,57 @@ describe('the date field', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('2026-06-15');
   });
 
+  it('shows each dot right after the day and the month, before the next digit is typed', async () => {
+    const user = userEvent.setup();
+    render(<Field />);
+    const input = screen.getByLabelText('Data') as HTMLInputElement;
+
+    await user.type(input, '24');
+    expect(input).toHaveValue('24.');
+    await nextFrame();
+    expect(input.selectionStart).toBe(3);
+    await user.type(input, '06');
+    expect(input).toHaveValue('24.06.');
+    await user.type(input, '2026');
+    expect(input).toHaveValue('24.06.2026');
+  });
+
+  it('removes a trailing dot with one Backspace instead of getting stuck on it', async () => {
+    const user = userEvent.setup();
+    render(<Field />);
+    const input = screen.getByLabelText('Data');
+
+    await user.type(input, '2406');
+    await user.keyboard('{Backspace}');
+    expect(input).toHaveValue('24.06');
+    await user.keyboard('{Backspace}');
+    expect(input).toHaveValue('24.0');
+    // The dot that would be left at the end goes with the digit.
+    await user.keyboard('{Backspace}');
+    expect(input).toHaveValue('24');
+    await user.keyboard('{Backspace}');
+    expect(input).toHaveValue('2');
+  });
+
+  it('deletes the digit before a dot in the middle on Backspace', async () => {
+    const user = userEvent.setup();
+    render(<Field />);
+    const input = screen.getByLabelText('Data') as HTMLInputElement;
+    await user.type(input, '24062026');
+
+    await nextFrame();
+    input.setSelectionRange(3, 3); // 24.|06.2026
+    await user.keyboard('{Backspace}');
+    expect(input).toHaveValue('20.62.026');
+  });
+
   it('asks for the full date only once the field is left half-typed', async () => {
     const user = userEvent.setup();
     render(<Field />);
     const input = screen.getByLabelText('Data');
 
     await user.type(input, '2406');
-    expect(input).toHaveValue('24.06');
+    expect(input).toHaveValue('24.06.');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     await user.tab();
 
