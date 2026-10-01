@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { Notice, NoticeTone } from '../../shared/components/ui';
 import type { ReactNode } from 'react';
 import type { AdminActivityLogEntry } from '../../shared/types/furli';
 import { nowLabel } from '../../shared/utils/furli';
@@ -24,8 +25,10 @@ interface AdminContextValue extends AdminSeedData {
   pendingVerificationCount: number;
   accessToken: string;
   activity: AdminActivityLogEntry[];
-  toast: string;
-  showToast: (message: string) => void;
+  // The outcome of an action, shown in a dialog (NoticeModal) - never a toast.
+  notice: Notice | null;
+  showNotice: (message: string, tone?: NoticeTone) => void;
+  closeNotice: () => void;
   refreshActivity: () => Promise<void>;
   getProvider: (providerId: string) => AdminProviderRecord | null;
   mergeProviders: (providers: AdminProviderRecord[]) => void;
@@ -85,24 +88,11 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
   const [state, setState] = useState<AdminSeedData>(() => loadAdminState());
   const [remotePendingCount, setRemotePendingCount] = useState<number | null>(null);
   const [activity, setActivity] = useState<AdminActivityLogEntry[]>([]);
-  const [toast, setToast] = useState('');
-  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
 
-  // Single global toast, one at a time - a second call restarts the 2.6s window rather than
-  // letting an earlier pending dismiss cut the new message short.
-  const showToast = useCallback((message: string) => {
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current);
-    }
-    setToast(message);
-    toastTimeoutRef.current = setTimeout(() => setToast(''), 2600);
-  }, []);
-
-  useEffect(() => () => {
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current);
-    }
-  }, []);
+  // One notice at a time; a newer one replaces it.
+  const showNotice = useCallback((message: string, tone: NoticeTone = 'success') => setNotice({ message, tone }), []);
+  const closeNotice = useCallback(() => setNotice(null), []);
 
   useEffect(() => {
     try {
@@ -242,8 +232,9 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     ...state,
     accessToken,
     activity,
-    toast,
-    showToast,
+    notice,
+    closeNotice,
+    showNotice,
     refreshActivity,
     pendingVerificationCount: remotePendingCount ?? state.providers.filter((provider) => provider.verificationStatus === 'pending' || provider.verificationStatus === 'changes_requested').length,
     getProvider: (providerId: string) => state.providers.find((provider) => provider.id === providerId) || null,
@@ -403,7 +394,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, showToast, state, toast]);
+  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, showNotice, closeNotice, state, notice]);
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }

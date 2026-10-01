@@ -15,8 +15,8 @@ const api = vi.hoisted(() => ({
   saveReviewPolicy: vi.fn(),
 }));
 vi.mock('../src/features/admin/reviews/api', async (importOriginal) => ({ ...(await importOriginal<object>()), ...api }));
-const showToast = vi.fn();
-vi.mock('../src/features/admin/context', () => ({ useAdminState: () => ({ accessToken: 'token', showToast }) }));
+const showNotice = vi.fn();
+vi.mock('../src/features/admin/context', () => ({ useAdminState: () => ({ accessToken: 'token', showNotice }) }));
 
 const { AdminReviewsPage } = await import('../src/features/admin/reviews/ReviewsPage');
 const { I18nProvider } = await import('../src/shared/i18n');
@@ -80,7 +80,7 @@ describe('Opinie - moderacja', () => {
     await user.type(screen.getByLabelText('Uzasadnienie'), 'Numer telefonu osoby prywatnej.');
     await user.click(lastButton('Ukryj opinię'));
     expect(api.moderateReview).toHaveBeenCalledWith('token', 'r1', 'hide', { category: 'PERSONAL_DATA', note: 'Numer telefonu osoby prywatnej.' });
-    await waitFor(() => expect(showToast).toHaveBeenCalledWith('Opinia ukryta. Autor i placówka zostali powiadomieni.'));
+    await waitFor(() => expect(showNotice).toHaveBeenCalledWith('Opinia ukryta. Autor i placówka zostali powiadomieni.'));
   });
 
   it('keeps a reported review', async () => {

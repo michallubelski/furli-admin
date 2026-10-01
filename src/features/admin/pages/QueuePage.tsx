@@ -107,7 +107,7 @@ function filterButtonStyle(active: boolean, color?: string): React.CSSProperties
 
 export function AdminQueuePage() {
   const { t } = useI18n();
-  const { providers, reviews, reports, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, resolveReport, showToast } = useAdminState();
+  const { providers, reviews, reports, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, resolveReport, showNotice } = useAdminState();
   const [filter, setFilter] = useState<QueueFilter>('all');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -125,7 +125,7 @@ export function AdminQueuePage() {
       mergeProviders([mapAdminProviderDto(response, provider)]);
       await refreshPendingVerificationCount();
       await refreshActivity();
-      showToast(t('admin.verification.approvedMessage', { name: provider?.name || item.title }));
+      showNotice(t('admin.verification.approvedMessage', { name: provider?.name || item.title }));
     } catch (nextError) {
       setError(nextError instanceof ApiClientError ? nextError.message : t('admin.verification.approveFailed'));
     } finally {

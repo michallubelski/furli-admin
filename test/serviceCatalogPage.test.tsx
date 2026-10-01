@@ -44,7 +44,7 @@ const api = vi.hoisted(() => ({
   getServiceCatalogRevisions: vi.fn(),
 }));
 vi.mock('../src/features/admin/serviceCatalog/api', () => api);
-vi.mock('../src/features/admin/context', () => ({ useAdminState: () => ({ accessToken: 'token', showToast: vi.fn() }) }));
+vi.mock('../src/features/admin/context', () => ({ useAdminState: () => ({ accessToken: 'token', showNotice: vi.fn() }) }));
 
 const { AdminServiceCatalogPage } = await import('../src/features/admin/serviceCatalog/ServiceCatalogPage');
 const { I18nProvider } = await import('../src/shared/i18n');

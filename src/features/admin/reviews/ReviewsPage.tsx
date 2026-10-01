@@ -40,7 +40,7 @@ const selectStyle: React.CSSProperties = { padding: '8px 10px', borderRadius: 10
 
 export function AdminReviewsPage() {
   const { t, formatDate, formatDateTime } = useI18n();
-  const { accessToken, showToast } = useAdminState();
+  const { accessToken, showNotice } = useAdminState();
   const isMobile = useIsMobile(1100);
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState<ReviewTab>('reported');
@@ -80,9 +80,9 @@ export function AdminReviewsPage() {
     let cancelled = false;
     getReviewDetail(accessToken, selectedId)
       .then((result) => { if (!cancelled) setDetail(result); })
-      .catch((failure) => { if (!cancelled) showToast(errorText(failure, t('admin.reviews.loadFailed'))); });
+      .catch((failure) => { if (!cancelled) showNotice(errorText(failure, t('admin.reviews.loadFailed')), 'error'); });
     return () => { cancelled = true; };
-  }, [accessToken, selectedId, errorText, showToast, t]);
+  }, [accessToken, selectedId, errorText, showNotice, t]);
 
   const select = (id: string | null) => {
     const next = new URLSearchParams(params);
@@ -93,7 +93,7 @@ export function AdminReviewsPage() {
 
   const applyDecision = (result: AdminReviewDetail, message: string) => {
     setDetail(result);
-    showToast(message);
+    showNotice(message);
     window.dispatchEvent(new Event(REVIEWS_CHANGED_EVENT));
     void load();
   };
@@ -153,7 +153,7 @@ export function AdminReviewsPage() {
           applyDecision(await moderateReview(accessToken, detail.review.id, action, body), message);
           return true;
         } catch (failure) {
-          showToast(errorText(failure, t('admin.reviews.actionFailed')));
+          showNotice(errorText(failure, t('admin.reviews.actionFailed')), 'error');
           return false;
         }
       }}
@@ -379,7 +379,7 @@ function ReviewDetailPanel({ detail, formatDate, formatDateTime, onClose, onActi
 
 function PolicyCard({ onClose }: { onClose: () => void }) {
   const { t, formatDateTime } = useI18n();
-  const { accessToken, showToast } = useAdminState();
+  const { accessToken, showNotice } = useAdminState();
   const [policy, setPolicy] = useState<ReviewPolicy | null>(null);
   const [write, setWrite] = useState('');
   const [edit, setEdit] = useState('');
@@ -415,7 +415,7 @@ function PolicyCard({ onClose }: { onClose: () => void }) {
     setError('');
     try {
       setPolicy(await saveReviewPolicy(accessToken, { writeWindowDays: writeDays, editWindowDays: editDays, replyWindowDays: replyDays }));
-      showToast(t('admin.reviews.policy.saved'));
+      showNotice(t('admin.reviews.policy.saved'));
     } catch (failure) {
       setError(failure instanceof ApiClientError ? failure.message : t('admin.reviews.policy.saveFailed'));
     } finally {

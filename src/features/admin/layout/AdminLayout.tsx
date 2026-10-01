@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, Clock, LayoutDashboard, LogOut, Menu, ShieldCheck, Store } from '../../../shared/icons';
 import type { IconComponent } from '../../../shared/types/furli';
-import { useIsMobile } from '../../../shared/components/ui';
+import { NoticeModal, useIsMobile } from '../../../shared/components/ui';
 import { C, FONT_BODY, FONT_HEAD, shadow } from '../../../shared/constants/theme';
 import { useI18n } from '../../../shared/i18n';
 import { buildAdminNav, buildAdminPageMeta } from '../../../app/routes';
@@ -46,7 +46,7 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { accessToken, pendingVerificationCount, reportedReviewCount, toast } = useAdminState();
+  const { accessToken, pendingVerificationCount, reportedReviewCount, notice, closeNotice } = useAdminState();
   const badgeFor = (badge?: 'pending' | 'reviews') => (badge === 'pending' ? pendingVerificationCount : badge === 'reviews' ? reportedReviewCount : 0);
   const [notifications, setNotifications] = useState<AdminNotificationDto[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -229,11 +229,7 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
         </nav>
       ) : null}
 
-      {toast ? (
-        <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', padding: '13px 24px', borderRadius: 12, background: 'oklch(0.25 0.03 55)', color: '#fff', fontSize: 14, fontWeight: 500, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: '90vw' }}>
-          {toast}
-        </div>
-      ) : null}
+      <NoticeModal notice={notice} onClose={closeNotice} />
     </div>
   );
 }

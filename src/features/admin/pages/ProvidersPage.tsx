@@ -33,7 +33,7 @@ export function AdminProvidersPage() {
     { id: 'rejected', label: t('admin.providers.tabs.rejected') },
     { id: 'expired', label: t('admin.providers.tabs.expired') },
   ];
-  const { providers, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, showToast } = useAdminState();
+  const { providers, accessToken, mergeProviders, refreshPendingVerificationCount, refreshActivity, showNotice } = useAdminState();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<AdminProviderListFilter>('registered');
   const [publishedSub, setPublishedSub] = useState<AdminProviderPublishedSubFilter>('all');
@@ -123,7 +123,7 @@ export function AdminProvidersPage() {
       mergeProviders([mapAdminProviderDto(response, provider)]);
       await refreshPendingVerificationCount();
       await refreshActivity();
-      showToast(t(provider.suspended ? 'admin.providers.confirmSuspend.reactivateSuccess' : 'admin.providers.confirmSuspend.suspendSuccess'));
+      showNotice(t(provider.suspended ? 'admin.providers.confirmSuspend.reactivateSuccess' : 'admin.providers.confirmSuspend.suspendSuccess'));
     } catch (error) {
       setActionError(error instanceof ApiClientError ? error.message : t('admin.providers.suspendToggleFailed'));
     } finally {

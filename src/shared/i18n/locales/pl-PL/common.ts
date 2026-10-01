@@ -1,6 +1,13 @@
 import type { TranslationNode } from '../../types';
 
 export const common: TranslationNode = {
+  // Titles of NoticeModal - the outcome of an action, by tone.
+  notice: {
+    success: 'Gotowe',
+    error: 'Nie udało się',
+    info: 'Do wiadomości',
+    ok: 'OK',
+  },
   // shared/components/DateInput.tsx - every typed date: DD.MM.RRRR, the dots added while typing.
   dateInput: {
     placeholder: 'DD.MM.RRRR',

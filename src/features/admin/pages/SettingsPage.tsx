@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { CreditCard, FileText, MapPin, SlidersHorizontal, Tag } from '../../../shared/icons';
 import { Card, SectionTitle, WizToggle } from '../../../shared/components/ui';
 import { C } from '../../../shared/constants/theme';
@@ -15,22 +14,15 @@ const LEGAL_DOCS = [
 
 export function AdminSettingsPage() {
   const { t } = useI18n();
-  const { plans, featureFlags, toggleFeatureFlag, logAudit } = useAdminState();
-  const [actionMessage, setActionMessage] = useState('');
+  const { plans, featureFlags, toggleFeatureFlag, logAudit, showNotice } = useAdminState();
 
   const runDemoAction = (label: string, target: string) => {
-    setActionMessage(`${label} (demo)`);
     logAudit(label, target);
-    window.setTimeout(() => setActionMessage(''), 2600);
+    showNotice(`${label} (demo)`);
   };
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-      {actionMessage ? (
-        <div style={{ gridColumn: '1 / -1', border: `1px solid ${C.border}`, background: C.bgMuted, color: C.textMedium, borderRadius: 10, padding: '10px 13px', fontSize: 12.5, fontWeight: 700 }}>
-          {actionMessage}
-        </div>
-      ) : null}
       <Card style={{ padding: 22 }}>
         <SectionTitle Icon={CreditCard}>{t('admin.config.plansTitle')}</SectionTitle>
         {plans.map((plan) => (

@@ -58,7 +58,7 @@ function move<T>(items: T[], index: number, delta: -1 | 1): T[] {
 
 export function AdminServiceCatalogPage() {
   const { t, locale } = useI18n();
-  const { accessToken, showToast } = useAdminState();
+  const { accessToken, showNotice } = useAdminState();
   const isMobile = useIsMobile(1100);
   const [state, setState] = useState<ServiceCatalogAdminState | null>(null);
   const [working, setWorking] = useState<CatalogDocument | null>(null);
@@ -285,7 +285,7 @@ export function AdminServiceCatalogPage() {
     setError('');
     try {
       apply(await saveServiceCatalogDraft(accessToken, working, state.draft?.lockVersion ?? null));
-      showToast(t('admin.serviceCatalog.saved'));
+      showNotice(t('admin.serviceCatalog.saved'));
     } catch (failure) {
       await handleFailure(failure, t('admin.serviceCatalog.saveFailed'));
     } finally {
@@ -303,7 +303,7 @@ export function AdminServiceCatalogPage() {
     try {
       apply(await discardServiceCatalogDraft(accessToken, state.draft.lockVersion));
       openCategory(0);
-      showToast(t('admin.serviceCatalog.discarded'));
+      showNotice(t('admin.serviceCatalog.discarded'));
     } catch (failure) {
       await handleFailure(failure, t('admin.serviceCatalog.discardFailed'));
     } finally {
@@ -317,7 +317,7 @@ export function AdminServiceCatalogPage() {
     setConfirmPublish(false);
     try {
       apply(await publishServiceCatalogDraft(accessToken, state.draft.lockVersion));
-      showToast(t('admin.serviceCatalog.publishedToast'));
+      showNotice(t('admin.serviceCatalog.publishedToast'));
     } catch (failure) {
       await handleFailure(failure, t('admin.serviceCatalog.publishFailed'));
     } finally {

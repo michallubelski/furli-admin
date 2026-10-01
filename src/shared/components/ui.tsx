@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { AlertTriangle, Check, Minus, Plus } from '../icons';
+import { AlertCircle, AlertTriangle, Check, Info, Minus, Plus } from '../icons';
 import { C, FONT_BODY, FONT_HEAD, FONT_NUM, shadow } from '../constants/theme';
 import type { CardProps } from '../types/furli';
 import { useI18n } from '../i18n';
@@ -378,6 +378,48 @@ export function useIsMobile(bp = 860): boolean {
 // facility cuts it off from every new booking platform-wide) - ported from the mockup's
 // ConfirmDangerModal. The confirm button stays disabled until the typed text matches `confirmWord`
 // (case-insensitive/trimmed), so the admin can't click through on autopilot.
+export type NoticeTone = 'success' | 'error' | 'info';
+
+export interface Notice {
+  message: string;
+  tone: NoticeTone;
+}
+
+const NOTICE_LOOK: Record<NoticeTone, { Icon: typeof Check; background: string; color: string }> = {
+  success: { Icon: Check, background: C.greenLight, color: C.green },
+  error: { Icon: AlertCircle, background: 'oklch(0.94 0.04 15)', color: C.roseDark },
+  info: { Icon: Info, background: C.primaryLight, color: C.amber },
+};
+
+/**
+ * The outcome of something the person did - saved, sent, deleted, or why it failed. Always this
+ * dialog, never a passing toast: it waits until it is read and closed (OK, Escape). The title
+ * follows the tone ("Gotowe", "Nie udało się", "Do wiadomości"), the message says what happened.
+ */
+export function NoticeModal({ notice, onClose }: { notice: Notice | null; onClose: () => void }) {
+  const { t } = useI18n();
+  useEffect(() => {
+    if (!notice) return undefined;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [notice, onClose]);
+  if (!notice) return null;
+  const look = NOTICE_LOOK[notice.tone];
+  return (
+    <div role={notice.tone === 'error' ? 'alertdialog' : 'dialog'} aria-modal="true" aria-labelledby="notice-title" aria-describedby="notice-message" style={{ position: 'fixed', inset: 0, zIndex: 130, background: 'oklch(0.25 0.02 55 / 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div style={{ width: '100%', maxWidth: 420, borderRadius: 20, background: C.bgCard, boxShadow: '0 30px 70px oklch(0.4 0.06 60 / 0.18)', padding: 24 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 999, background: look.background, color: look.color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}><look.Icon size={22} /></div>
+        <h3 id="notice-title" style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: C.text, fontFamily: FONT_HEAD }}>{t(`common.notice.${notice.tone}`)}</h3>
+        <p id="notice-message" style={{ margin: '0 0 20px', fontSize: 14, lineHeight: 1.55, color: C.textSecondary, fontFamily: FONT_BODY, whiteSpace: 'pre-line' }}>{notice.message}</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="button" autoFocus onClick={onClose} style={{ minWidth: 88, padding: '11px 18px', borderRadius: 12, border: 'none', background: C.primary, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: FONT_BODY }}>{t('common.notice.ok')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ConfirmDangerModal({
   open,
   title,

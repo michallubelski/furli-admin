@@ -125,8 +125,7 @@ function ExtendTrialModal({ provider, onClose, onConfirm, submitting }: {
 
 export function AdminSubscriptionsPage() {
   const { t } = useI18n();
-  const { providers, accessToken, mergeProviders, refreshActivity } = useAdminState();
-  const [actionMessage, setActionMessage] = useState('');
+  const { providers, accessToken, mergeProviders, refreshActivity, showNotice } = useAdminState();
   const [actionError, setActionError] = useState('');
   const [pendingProviderId, setPendingProviderId] = useState<string | null>(null);
   const [discountTarget, setDiscountTarget] = useState<AdminProviderRecord | null>(null);
@@ -137,11 +136,6 @@ export function AdminSubscriptionsPage() {
   const overdue = approved.filter((provider) => provider.billingStatus === 'overdue');
   const mrr = active.reduce((sum, provider) => sum + provider.monthlyValue, 0);
 
-  const showMessage = (label: string) => {
-    setActionMessage(label);
-    window.setTimeout(() => setActionMessage(''), 2600);
-  };
-
   const handleExtendTrial = async (provider: AdminProviderRecord, days: number) => {
     setPendingProviderId(provider.id);
     setActionError('');
@@ -150,7 +144,7 @@ export function AdminSubscriptionsPage() {
       mergeProviders([mapAdminProviderDto(response, provider)]);
       await refreshActivity();
       setTrialTarget(null);
-      showMessage(t('admin.subscriptions.extendTrialSuccess', { name: provider.name }));
+      showNotice(t('admin.subscriptions.extendTrialSuccess', { name: provider.name }));
     } catch (error) {
       setActionError(error instanceof ApiClientError ? error.message : t('admin.subscriptions.extendTrialFailed'));
     } finally {
@@ -166,7 +160,7 @@ export function AdminSubscriptionsPage() {
       mergeProviders([mapAdminProviderDto(response, provider)]);
       await refreshActivity();
       setDiscountTarget(null);
-      showMessage(t('admin.subscriptions.discountSuccess', { percent, name: provider.name }));
+      showNotice(t('admin.subscriptions.discountSuccess', { percent, name: provider.name }));
     } catch (error) {
       setActionError(error instanceof ApiClientError ? error.message : t('admin.subscriptions.discountFailed'));
     } finally {
@@ -179,11 +173,6 @@ export function AdminSubscriptionsPage() {
       {actionError ? (
         <div style={{ border: `1px solid ${C.roseDark}`, background: 'oklch(0.95 0.04 15)', color: C.roseDark, borderRadius: 10, padding: '11px 13px', fontSize: 12.5, fontWeight: 700, marginBottom: 14 }}>
           {actionError}
-        </div>
-      ) : null}
-      {actionMessage ? (
-        <div style={{ border: `1px solid ${C.border}`, background: C.bgMuted, color: C.textMedium, borderRadius: 10, padding: '10px 13px', fontSize: 12.5, fontWeight: 700, marginBottom: 14 }}>
-          {actionMessage}
         </div>
       ) : null}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16, marginBottom: 18 }}>
