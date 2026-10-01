@@ -228,6 +228,7 @@ export const admin: TranslationNode = {
       services: 'cennik usług',
       staff: 'zespół',
       card: 'metoda płatności',
+      accountEmail: 'potwierdzony e-mail konta',
     },
     modalBanner: {
       title: 'Profil niekompletny — {pct}% ({done} z {total})',

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BarChart3, Download } from '../../../shared/icons';
 import { Card, SectionTitle } from '../../../shared/components/ui';
 import { C, FONT_BODY } from '../../../shared/constants/theme';
+import { DateInput } from '../../../shared/components/DateInput';
 import { useI18n } from '../../../shared/i18n';
 import { useAdminState } from '../context';
 import { getAdminStats, type AdminStatsOverviewDto } from '../api';
@@ -11,6 +12,8 @@ type RangePreset = '7' | '30' | '90' | '365' | 'custom';
 const RANGE_PRESETS: RangePreset[] = ['7', '30', '90', '365', 'custom'];
 const toIsoDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 const rangePillStyle = (active: boolean): React.CSSProperties => ({ padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, border: `1px solid ${active ? C.text : C.border}`, background: active ? C.text : C.bgCard, color: active ? '#fff' : C.textMedium });
+
+const DATE_STYLE = { border: `1px solid ${C.border}`, background: C.bgCard, borderRadius: 9, padding: '6px 9px', fontFamily: FONT_BODY, fontSize: 12.5, color: C.text };
 
 export function AdminAnalyticsPage() {
   const { t } = useI18n();
@@ -49,8 +52,9 @@ export function AdminAnalyticsPage() {
         <button onClick={exportCsv} disabled={!stats || loading} style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 15px', borderRadius: 11, border: `1px solid ${C.border}`, background: C.bgCard, color: C.textMedium, fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}><Download size={15} /> {t('admin.stats.exportCsv')}</button>
       </div>
       {range === 'custom' && <div style={{ display: 'flex', gap: 12, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
-        <label style={{ fontSize: 12, color: C.textMuted }}>{t('admin.stats.customFrom')} <input type="date" value={customFrom} max={customTo} onChange={(event) => setCustomFrom(event.target.value)} /></label>
-        <label style={{ fontSize: 12, color: C.textMuted }}>{t('admin.stats.customTo')} <input type="date" value={customTo} min={customFrom} max={today} onChange={(event) => setCustomTo(event.target.value)} /></label>
+        {/* The range changes only once a whole, valid date is typed - not on every digit. */}
+        <div style={{ fontSize: 12, color: C.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>{t('admin.stats.customFrom')}<div style={{ width: 150 }}><DateInput ariaLabel={t('admin.stats.customFrom')} value={customFrom} max={customTo} onChange={(iso) => { if (iso) setCustomFrom(iso); }} inputStyle={DATE_STYLE} /></div></div>
+        <div style={{ fontSize: 12, color: C.textMuted, display: 'flex', alignItems: 'center', gap: 6 }}>{t('admin.stats.customTo')}<div style={{ width: 150 }}><DateInput ariaLabel={t('admin.stats.customTo')} value={customTo} min={customFrom} max={today} onChange={(iso) => { if (iso) setCustomTo(iso); }} inputStyle={DATE_STYLE} /></div></div>
       </div>}
     </Card>
     {error && <Card style={{ padding: 18, marginBottom: 16, color: C.roseDark }}>{t('common.states.fetchError')}</Card>}

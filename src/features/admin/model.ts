@@ -111,6 +111,7 @@ const PUBLISH_REQUIREMENT_KEY: Record<string, string> = {
   services: 'admin.publishReadiness.requirements.services',
   staff: 'admin.publishReadiness.requirements.staff',
   card: 'admin.publishReadiness.requirements.card',
+  accountEmail: 'admin.publishReadiness.requirements.accountEmail',
 };
 
 export function publishRequirementLabel(t: Translate, id: string): string {

@@ -226,6 +226,7 @@ export const admin: TranslationNode = {
       services: 'service price list',
       staff: 'team',
       card: 'payment method',
+      accountEmail: 'confirmed account email',
     },
     modalBanner: {
       title: 'Profile incomplete — {pct}% ({done} of {total})',

@@ -1,6 +1,15 @@
 import type { TranslationNode } from '../../types';
 
 export const common: TranslationNode = {
+  // shared/components/DateInput.tsx - every typed date: DD.MM.YYYY, the dots added while typing.
+  dateInput: {
+    placeholder: 'DD.MM.YYYY',
+    pickerCta: 'Pick from the calendar',
+    incomplete: 'Enter the full date as DD.MM.YYYY, e.g. 24.06.2026.',
+    invalid: "That date doesn't exist — check the day and the month.",
+    tooEarly: 'The earliest possible date is {date}.',
+    tooLate: 'The latest possible date is {date}.',
+  },
   locale: {
     name: 'English',
     switcherLabel: 'Language',
