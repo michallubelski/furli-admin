@@ -394,7 +394,8 @@ const NOTICE_LOOK: Record<NoticeTone, { Icon: typeof Check; background: string; 
 /**
  * The outcome of something the person did - saved, sent, deleted, or why it failed. Always this
  * dialog, never a passing toast: it waits until it is read and closed (OK, Escape). The title
- * follows the tone ("Gotowe", "Nie udało się", "Do wiadomości"), the message says what happened.
+ * follows the tone (common.notice: done, something went wrong, please note), the message says
+ * what happened.
  */
 export function NoticeModal({ notice, onClose }: { notice: Notice | null; onClose: () => void }) {
   const { t } = useI18n();
