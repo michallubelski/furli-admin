@@ -37,10 +37,10 @@ cp package.json package-lock.json tsconfig.json tsconfig.app.json tsconfig.node.
    vite.config.ts vite.config.js vite.config.d.ts index.html "$OUT_DIR/"
 cp -r src public docker "$OUT_DIR/"
 
-# The bundle deliberately carries this machine's secrets (docker/.env.<env>, .htpasswd where there is
-# one): unpacked on the server it brings them along, so the server needs no hand-kept copy. Keep the
-# line below commented out - uncomment it only to build a bundle without secrets.
-#rm -f "$OUT_DIR/docker/.htpasswd" "$OUT_DIR/docker/.env.dev" "$OUT_DIR/docker/.env.prod"
+# The bundle deliberately carries this machine's secrets (docker/.env.<env>): unpacked on the server it
+# brings them along, so the server needs no hand-kept copy. Keep the line below commented out -
+# uncomment it only to build a bundle without secrets.
+#rm -f "$OUT_DIR/docker/.env.dev" "$OUT_DIR/docker/.env.prod"
 
 echo "==> Kopiowanie deploy.sh (domyslne --env dopasowane do '$ENV_ARG') i lib/env.sh z furli-infra..."
 cp deploy/deploy.sh "$OUT_DIR/deploy.sh"
@@ -97,5 +97,5 @@ echo "    $OUT_DIR/ zawiera wszystko potrzebne do zbudowania i uruchomienia pane
 echo "    serwerze srodowiska '$ENV_ARG'. Skopiuj TYLKO ten wewnetrzny katalog (bez sufiksu"
 echo "    -${ENV_ARG}) na serwer, tak zeby tam nazywal sie po prostu 'deployment':"
 echo "      rsync -av $OUT_DIR/ user@serwer:/opt/furli-admin/deployment/"
-echo "    Upewnij sie ze deployment/docker/.htpasswd i deployment/docker/.env.${ENV_ARG} istnieja"
+echo "    Upewnij sie ze deployment/docker/.env.${ENV_ARG} istnieje"
 echo "    tam, wejdz do deployment/ i uruchom ./deploy.sh."
