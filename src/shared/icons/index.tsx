@@ -14,6 +14,7 @@ export const LayoutDashboard = wrap(Lucide.LayoutDashboard);
 export const Calendar = wrap(Lucide.Calendar);
 export const Clock = wrap(Lucide.Clock);
 export const Store = wrap(Lucide.Store);
+export const ShoppingBag = wrap(Lucide.ShoppingBag);
 export const Star = wrap(Lucide.Star);
 export const Plug = wrap(Lucide.Plug);
 export const Bell = wrap(Lucide.Bell);

@@ -156,6 +156,7 @@ export type AdminRouteKey =
   | 'providers'
   | 'subscriptions'
   | 'reviews'
+  | 'orders'
   | 'reports'
   | 'apiIntegrations'
   | 'analytics'

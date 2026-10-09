@@ -17,6 +17,7 @@ import { SERVICE_CATALOG_BASE, serviceKeyFromName } from '../../shared/constants
 import { SPECIALTIES_BY_TYPE } from '../../shared/constants/specialties';
 import type { CatalogKind } from './catalog';
 import { listReviews, REVIEWS_CHANGED_EVENT } from './reviews/api';
+import { listOrders, ORDERS_CHANGED_EVENT } from './orders/api';
 import type { ProviderType } from '../../shared/types/furli';
 
 const STORAGE_KEY = 'furli_admin_v1';
@@ -37,6 +38,8 @@ interface AdminContextValue extends AdminSeedData {
   logAudit: (action: string, target: string) => void;
   /** Reported reviews waiting for a decision (the sidebar badge); `reviews` lists them for the queue. */
   reportedReviewCount: number;
+  /** New shop orders waiting to be packed (status CONFIRMED) - the sidebar badge. */
+  newOrderCount: number;
   resolveReport: (reportId: string) => Promise<void>;
   setIntegrationStatus: (integrationId: string, status: AdminIntegrationRecord['status']) => void;
   addBroadcast: (title: string, audience?: string, channel?: string) => Promise<void>;
@@ -221,6 +224,19 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     return () => window.removeEventListener(REVIEWS_CHANGED_EVENT, loadReportedReviews);
   }, [loadReportedReviews]);
 
+  const [newOrderCount, setNewOrderCount] = useState(0);
+  const loadNewOrderCount = useCallback(() => {
+    listOrders(accessToken, { tab: 'CONFIRMED', size: 1 })
+      .then((page) => setNewOrderCount(page.counts.CONFIRMED))
+      .catch(() => undefined);
+  }, [accessToken]);
+
+  useEffect(() => {
+    loadNewOrderCount();
+    window.addEventListener(ORDERS_CHANGED_EVENT, loadNewOrderCount);
+    return () => window.removeEventListener(ORDERS_CHANGED_EVENT, loadNewOrderCount);
+  }, [loadNewOrderCount]);
+
   const logAudit = useCallback((action: string, target: string) => {
     setState((current) => ({
       ...current,
@@ -243,6 +259,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
     refreshPendingVerificationCount,
     logAudit,
     reportedReviewCount,
+    newOrderCount,
     resolveReport: async (reportId) => {
       await updateAdminReport(accessToken, reportId, 'resolved');
       setState((current) => {
@@ -394,7 +411,7 @@ export function AdminStateProvider({ accessToken, children }: { accessToken: str
         };
       });
     },
-  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, showNotice, closeNotice, state, notice]);
+  }), [accessToken, activity, logAudit, mergeProviders, refreshActivity, refreshPendingVerificationCount, refreshProviders, remotePendingCount, showNotice, closeNotice, state, notice, reportedReviewCount, newOrderCount]);
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 }

@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Plug,
   ShieldCheck,
+  ShoppingBag,
   SlidersHorizontal,
   Store,
   Tag,
@@ -19,8 +20,9 @@ export interface NavEntry {
   path: string;
   label: string;
   Icon: IconComponent;
-  // pending: providers waiting for verification; reviews: reported reviews waiting for a decision.
-  badge?: 'pending' | 'reviews';
+  // pending: providers waiting for verification; reviews: reported reviews waiting for a decision;
+  // orders: new shop orders waiting to be packed.
+  badge?: 'pending' | 'reviews' | 'orders';
 }
 
 export interface NavSection {
@@ -46,6 +48,7 @@ export function buildAdminPageMeta(t: Translate): Record<AdminRouteKey, PageMeta
     providers: { title: t('admin.routes.providers.title'), subtitle: t('admin.routes.providers.subtitle') },
     subscriptions: { title: t('admin.routes.subscriptions.title'), subtitle: t('admin.routes.subscriptions.subtitle') },
     reviews: { title: t('admin.routes.reviews.title'), subtitle: t('admin.routes.reviews.subtitle') },
+    orders: { title: t('admin.routes.orders.title'), subtitle: t('admin.routes.orders.subtitle') },
     reports: { title: t('admin.routes.reports.title'), subtitle: t('admin.routes.reports.subtitle') },
     apiIntegrations: { title: t('admin.routes.apiIntegrations.title'), subtitle: t('admin.routes.apiIntegrations.subtitle') },
     analytics: { title: t('admin.routes.analytics.title'), subtitle: t('admin.routes.analytics.subtitle') },
@@ -69,6 +72,7 @@ export function buildAdminNav(t: Translate): NavSection[] {
         // just no longer linked from the sidebar, mirroring the mockup's own NAV/TITLES split.
         { path: '/queue', label: t('admin.nav.queue'), Icon: ShieldCheck, badge: 'pending' },
         { path: '/providers', label: t('admin.nav.providers'), Icon: Store },
+        { path: '/orders', label: t('admin.nav.orders'), Icon: ShoppingBag, badge: 'orders' },
       ],
     },
     {

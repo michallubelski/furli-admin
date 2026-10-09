@@ -12,6 +12,7 @@ import { AdminProvidersPage } from './pages/ProvidersPage';
 import { AdminQueuePage } from './pages/QueuePage';
 import { AdminReportsPage } from './pages/ReportsPage';
 import { AdminReviewsPage } from './reviews/ReviewsPage';
+import { AdminOrdersPage } from './orders/OrdersPage';
 import { AdminServiceCatalogPage } from './serviceCatalog/ServiceCatalogPage';
 import { AdminSettingsPage } from './pages/SettingsPage';
 import { AdminSubscriptionsPage } from './pages/SubscriptionsPage';
@@ -26,6 +27,7 @@ export function AdminRoutes({ accessToken, onLogout }: { accessToken: string; on
           <Route path="queue" element={<AdminQueuePage />} />
           <Route path="verification" element={<AdminVerificationPage />} />
           <Route path="providers" element={<AdminProvidersPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
           <Route path="reviews" element={<AdminReviewsPage />} />
           <Route path="reports" element={<AdminReportsPage />} />

@@ -19,6 +19,7 @@ function resolveAdminRouteKey(pathname: string): AdminRouteKey {
   if (pathname.startsWith('/providers')) return 'providers';
   if (pathname.startsWith('/subscriptions')) return 'subscriptions';
   if (pathname.startsWith('/reviews')) return 'reviews';
+  if (pathname.startsWith('/orders')) return 'orders';
   if (pathname.startsWith('/reports')) return 'reports';
   if (pathname.startsWith('/api-integrations')) return 'apiIntegrations';
   if (pathname.startsWith('/analytics')) return 'analytics';
@@ -46,8 +47,8 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { accessToken, pendingVerificationCount, reportedReviewCount, notice, closeNotice } = useAdminState();
-  const badgeFor = (badge?: 'pending' | 'reviews') => (badge === 'pending' ? pendingVerificationCount : badge === 'reviews' ? reportedReviewCount : 0);
+  const { accessToken, pendingVerificationCount, reportedReviewCount, newOrderCount, notice, closeNotice } = useAdminState();
+  const badgeFor = (badge?: 'pending' | 'reviews' | 'orders') => (badge === 'pending' ? pendingVerificationCount : badge === 'reviews' ? reportedReviewCount : badge === 'orders' ? newOrderCount : 0);
   const [notifications, setNotifications] = useState<AdminNotificationDto[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const navSections = useMemo(() => buildAdminNav(t), [t]);
@@ -142,7 +143,7 @@ export function AdminLayout({ onLogout }: { onLogout: () => void }) {
                       <item.Icon size={18} />
                       {item.label}
                       {badgeFor(item.badge) > 0 ? (
-                        <span title={item.badge === 'reviews' ? t('admin.reviews.reportedBadge', { count: badgeFor(item.badge) }) : undefined} style={{ marginLeft: 'auto', background: active ? '#fff' : item.badge === 'reviews' ? C.roseDark : C.amber, color: active ? C.amber : '#fff', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                        <span title={item.badge === 'reviews' ? t('admin.reviews.reportedBadge', { count: badgeFor(item.badge) }) : item.badge === 'orders' ? t('admin.orders.newBadge', { count: badgeFor(item.badge) }) : undefined} style={{ marginLeft: 'auto', background: active ? '#fff' : item.badge === 'reviews' ? C.roseDark : C.amber, color: active ? C.amber : '#fff', fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
                           {badgeFor(item.badge)}
                         </span>
                       ) : null}
